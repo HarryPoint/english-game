@@ -1,0 +1,862 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>字母气球射击</title>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Fredoka', sans-serif;
+      overflow: hidden;
+      background: linear-gradient(180deg, #87CEEB 0%, #E0F7FA 50%, #98FF98 100%);
+      min-height: 100vh;
+    }
+
+    .game-title {
+      position: absolute;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: #FF6B6B;
+      text-shadow: 3px 3px 0 #FFF, 5px 5px 0 rgba(0,0,0,0.1);
+      z-index: 100;
+    }
+
+    .score-board {
+      position: absolute;
+      top: 20px;
+      right: 30px;
+      background: linear-gradient(135deg, #FFE66D 0%, #FFDE59 100%);
+      padding: 12px 25px;
+      border-radius: 20px;
+      font-size: 1.4rem;
+      font-weight: 600;
+      color: #5D4E37;
+      box-shadow: 0 6px 0 #E5C100, 0 8px 15px rgba(0,0,0,0.15);
+      border: 3px solid #5D4E37;
+      z-index: 100;
+    }
+
+    /* 大炮 */
+    .cannon {
+      position: absolute;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 50;
+    }
+
+    .cannon-body {
+      width: 80px;
+      height: 60px;
+      background: linear-gradient(180deg, #FF6B6B 0%, #EE5A5A 100%);
+      border-radius: 15px 15px 25px 25px;
+      border: 4px solid #C74B4B;
+      position: relative;
+    }
+
+    .cannon-body::before {
+      content: '';
+      position: absolute;
+      top: -20px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 30px;
+      height: 35px;
+      background: linear-gradient(180deg, #FF8585 0%, #FF6B6B 100%);
+      border-radius: 8px 8px 0 0;
+      border: 4px solid #C74B4B;
+      border-bottom: none;
+    }
+
+    .cannon-wheels {
+      display: flex;
+      justify-content: center;
+      gap: 30px;
+      margin-top: -5px;
+    }
+
+    .wheel {
+      width: 30px;
+      height: 30px;
+      background: linear-gradient(135deg, #FFD93D 0%, #FFDE59 100%);
+      border-radius: 50%;
+      border: 4px solid #5D4E37;
+      position: relative;
+    }
+
+    .wheel::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 10px;
+      height: 10px;
+      background: #5D4E37;
+      border-radius: 50%;
+    }
+
+    /* 炮弹 */
+    .bullet {
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      background: radial-gradient(circle at 30% 30%, #FFD93D, #FFA500);
+      border-radius: 50%;
+      border: 3px solid #CC8400;
+      z-index: 60;
+      pointer-events: none;
+      box-shadow: 0 0 10px #FFD93D, 0 0 20px rgba(255, 215, 0, 0.5);
+    }
+
+    .bullet::after {
+      content: '';
+      position: absolute;
+      top: -10px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0;
+      height: 0;
+      border-left: 7px solid transparent;
+      border-right: 7px solid transparent;
+      border-bottom: 12px solid #FF6B6B;
+    }
+
+    .bullet-trail {
+      position: absolute;
+      width: 10px;
+      height: 35px;
+      background: linear-gradient(to bottom, #FF6B6B, #FFD93D, transparent);
+      border-radius: 50%;
+      left: 5px;
+      top: 18px;
+      z-index: 59;
+      pointer-events: none;
+      animation: trailPulse 0.1s ease-in-out infinite alternate;
+    }
+
+    @keyframes trailPulse {
+      0% { opacity: 0.7; transform: scaleY(0.8); }
+      100% { opacity: 1; transform: scaleY(1.2); }
+    }
+
+    .fire-flash {
+      position: absolute;
+      width: 80px;
+      height: 80px;
+      background: radial-gradient(circle, rgba(255,215,0,0.9) 0%, rgba(255,107,107,0.5) 40%, transparent 70%);
+      border-radius: 50%;
+      left: -30px;
+      top: -40px;
+      pointer-events: none;
+      animation: fireFlash 0.25s ease-out forwards;
+    }
+
+    @keyframes fireFlash {
+      0% { transform: scale(0.3); opacity: 1; }
+      100% { transform: scale(2.5); opacity: 0; }
+    }
+
+    /* 气球 */
+    .balloon {
+      position: absolute;
+      cursor: default;
+      animation: float 3s ease-in-out infinite;
+    }
+
+    .balloon-body {
+      width: 70px;
+      height: 85px;
+      border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+      position: relative;
+      box-shadow: inset -10px -10px 30px rgba(0,0,0,0.15), 0 8px 20px rgba(0,0,0,0.2);
+    }
+
+    .balloon-body::before {
+      content: '';
+      position: absolute;
+      bottom: -15px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0;
+      height: 0;
+      border-left: 10px solid transparent;
+      border-right: 10px solid transparent;
+      border-top: 18px solid currentColor;
+    }
+
+    .balloon-body::after {
+      content: '';
+      position: absolute;
+      bottom: -25px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 2px;
+      height: 20px;
+      background: linear-gradient(180deg, #999, transparent);
+    }
+
+    .balloon-shine {
+      position: absolute;
+      top: 15px;
+      left: 12px;
+      width: 18px;
+      height: 25px;
+      background: rgba(255,255,255,0.5);
+      border-radius: 50%;
+      transform: rotate(-30deg);
+    }
+
+    .balloon-letter {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 2rem;
+      font-weight: 700;
+      color: white;
+      text-shadow: 2px 2px 3px rgba(0,0,0,0.3);
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-12px); }
+    }
+
+    @keyframes pop {
+      0% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.4); opacity: 0.8; }
+      100% { transform: scale(0); opacity: 0; }
+    }
+
+    .balloon.popping .balloon-body {
+      animation: pop 0.25s ease-out forwards;
+    }
+
+    /* 爆炸效果 */
+    .explosion {
+      position: absolute;
+      pointer-events: none;
+      z-index: 200;
+    }
+
+    .explosion-particle {
+      position: absolute;
+      border-radius: 50%;
+      animation: explode 0.5s ease-out forwards;
+    }
+
+    @keyframes explode {
+      0% { transform: translate(0, 0) scale(1); opacity: 1; }
+      100% { transform: translate(var(--tx), var(--ty)) scale(0); opacity: 0; }
+    }
+
+    @keyframes flashBang {
+      0% { transform: scale(0.5); opacity: 1; }
+      100% { transform: scale(4); opacity: 0; }
+    }
+
+    /* 屏幕震动 */
+    @keyframes shake {
+      0%, 100% { transform: translate(0, 0); }
+      20% { transform: translate(-6px, 4px); }
+      40% { transform: translate(6px, -4px); }
+      60% { transform: translate(-4px, 6px); }
+      80% { transform: translate(4px, -6px); }
+    }
+
+    .shake {
+      animation: shake 0.35s ease-out;
+    }
+
+    /* 得分弹出 */
+    .score-popup {
+      position: absolute;
+      font-size: 2.2rem;
+      font-weight: 700;
+      color: #FFD93D;
+      text-shadow: 3px 3px 0 #FF6B6B;
+      pointer-events: none;
+      z-index: 300;
+      animation: scoreFloat 0.8s ease-out forwards;
+    }
+
+    @keyframes scoreFloat {
+      0% { transform: translateY(0) scale(0.5); opacity: 0; }
+      20% { transform: translateY(-15px) scale(1.3); opacity: 1; }
+      100% { transform: translateY(-80px) scale(1); opacity: 0; }
+    }
+
+    /* 云朵装饰 */
+    .cloud {
+      position: absolute;
+      background: white;
+      border-radius: 50px;
+      opacity: 0.9;
+      z-index: 10;
+    }
+
+    .cloud::before, .cloud::after {
+      content: '';
+      position: absolute;
+      background: white;
+      border-radius: 50%;
+    }
+
+    .cloud-1 { width: 100px; height: 40px; top: 15%; left: 10%; }
+    .cloud-1::before { width: 50px; height: 50px; top: -25px; left: 15px; }
+    .cloud-1::after { width: 35px; height: 35px; top: -18px; left: 50px; }
+
+    .cloud-2 { width: 120px; height: 45px; top: 25%; right: 15%; }
+    .cloud-2::before { width: 55px; height: 55px; top: -30px; left: 20px; }
+    .cloud-2::after { width: 40px; height: 40px; top: -20px; left: 60px; }
+
+    .cloud-3 { width: 80px; height: 35px; top: 35%; left: 30%; }
+    .cloud-3::before { width: 40px; height: 40px; top: -20px; left: 10px; }
+    .cloud-3::after { width: 30px; height: 30px; top: -15px; left: 38px; }
+
+    /* 输入提示 */
+    .input-hint {
+      position: absolute;
+      bottom: 110px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 1.3rem;
+      color: #5D4E37;
+      background: rgba(255,255,255,0.85);
+      padding: 8px 20px;
+      border-radius: 15px;
+      z-index: 100;
+    }
+
+    .input-hint kbd {
+      background: #FFE66D;
+      padding: 3px 10px;
+      border-radius: 8px;
+      border: 2px solid #5D4E37;
+      font-weight: 600;
+      margin: 0 3px;
+    }
+
+    /* 开始界面 */
+    .start-screen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(180deg, #87CEEB 0%, #E0F7FA 50%, #98FF98 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+
+    .start-title {
+      font-size: 3.5rem;
+      font-weight: 700;
+      color: #FF6B6B;
+      text-shadow: 4px 4px 0 #FFF, 6px 6px 0 rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+    }
+
+    .start-subtitle {
+      font-size: 1.5rem;
+      color: #5D4E37;
+      margin-bottom: 40px;
+    }
+
+    .start-btn {
+      font-family: 'Fredoka', sans-serif;
+      font-size: 1.8rem;
+      font-weight: 600;
+      padding: 18px 60px;
+      background: linear-gradient(180deg, #98FF98 0%, #7AE07A 100%);
+      color: #2D5A2D;
+      border: 4px solid #2D5A2D;
+      border-radius: 25px;
+      cursor: pointer;
+      box-shadow: 0 6px 0 #2D5A2D, 0 8px 15px rgba(0,0,0,0.2);
+      transition: all 0.15s ease;
+    }
+
+    .start-btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 9px 0 #2D5A2D, 0 12px 20px rgba(0,0,0,0.25);
+    }
+
+    .start-btn:active {
+      transform: translateY(3px);
+      box-shadow: 0 3px 0 #2D5A2D, 0 5px 10px rgba(0,0,0,0.2);
+    }
+
+    .balloon-preview {
+      display: flex;
+      gap: 15px;
+      margin-bottom: 30px;
+    }
+
+    .preview-balloon {
+      width: 50px;
+      height: 60px;
+      border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: white;
+      text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+    }
+
+    /* 游戏结束界面 */
+    .game-over-screen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.7);
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+
+    .game-over-screen.show {
+      display: flex;
+    }
+
+    .game-over-box {
+      background: linear-gradient(180deg, #FFE66D 0%, #FFDE59 100%);
+      padding: 40px 60px;
+      border-radius: 30px;
+      border: 5px solid #5D4E37;
+      text-align: center;
+      box-shadow: 0 10px 0 #CC8400, 0 15px 30px rgba(0,0,0,0.3);
+    }
+
+    .game-over-title {
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: #FF6B6B;
+      margin-bottom: 15px;
+    }
+
+    .game-over-score {
+      font-size: 1.8rem;
+      color: #5D4E37;
+      margin-bottom: 30px;
+    }
+
+    .game-over-score span {
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: #FF6B6B;
+    }
+
+    .restart-btn {
+      font-family: 'Fredoka', sans-serif;
+      font-size: 1.5rem;
+      font-weight: 600;
+      padding: 15px 50px;
+      background: linear-gradient(180deg, #98FF98 0%, #7AE07A 100%);
+      color: #2D5A2D;
+      border: 4px solid #2D5A2D;
+      border-radius: 20px;
+      cursor: pointer;
+      box-shadow: 0 5px 0 #2D5A2D;
+      transition: all 0.15s ease;
+    }
+
+    .restart-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 7px 0 #2D5A2D;
+    }
+
+    .restart-btn:active {
+      transform: translateY(2px);
+      box-shadow: 0 3px 0 #2D5A2D;
+    }
+  </style>
+</head>
+<body>
+  <!-- 开始界面 -->
+  <div class="start-screen" id="startScreen">
+    <div class="balloon-preview">
+      <div class="preview-balloon" style="background: linear-gradient(135deg, #FF6B6B, #EE5A5A);">A</div>
+      <div class="preview-balloon" style="background: linear-gradient(135deg, #FFD93D, #FFCE5C);">B</div>
+      <div class="preview-balloon" style="background: linear-gradient(135deg, #98FF98, #7AE07A);">C</div>
+      <div class="preview-balloon" style="background: linear-gradient(135deg, #86CCCA, #6A9FB4);">D</div>
+      <div class="preview-balloon" style="background: linear-gradient(135deg, #FF71CE, #FF5CB8);">E</div>
+    </div>
+    <h1 class="start-title">字母气球射击</h1>
+    <p class="start-subtitle">按下键盘上的字母键，发射炮弹击中气球！</p>
+    <button class="start-btn" onclick="startGame()">开始游戏</button>
+  </div>
+
+  <!-- 游戏结束界面 -->
+  <div class="game-over-screen" id="gameOverScreen">
+    <div class="game-over-box">
+      <h2 class="game-over-title">游戏结束！</h2>
+      <p class="game-over-score">你的得分：<span id="finalScore">0</span></p>
+      <button class="restart-btn" onclick="restartGame()">再玩一次</button>
+    </div>
+  </div>
+
+  <!-- 游戏主界面 -->
+  <h1 class="game-title">字母气球射击</h1>
+  <div class="score-board">得分: <span id="score">0</span></div>
+
+  <div class="cloud cloud-1"></div>
+  <div class="cloud cloud-2"></div>
+  <div class="cloud cloud-3"></div>
+
+  <div class="cannon">
+    <div class="cannon-body"></div>
+    <div class="cannon-wheels">
+      <div class="wheel"></div>
+      <div class="wheel"></div>
+    </div>
+  </div>
+
+  <div class="input-hint">
+    按下 <kbd>A</kbd> - <kbd>Z</kbd> 键发射炮弹！
+  </div>
+
+  <div id="gameContainer"></div>
+
+  <script>
+    // 游戏状态
+    let score = 0;
+    let balloons = [];
+    let bullets = [];
+    let gameRunning = false;
+    let balloonIdCounter = 0;
+    let bulletIdCounter = 0;
+    let lastSpawnTime = 0;
+
+    // 气球颜色
+    const balloonColors = [
+      { gradient: 'linear-gradient(135deg, #FF6B6B, #EE5A5A)', color: '#EE5A5A' },
+      { gradient: 'linear-gradient(135deg, #FFD93D, #FFCE5C)', color: '#FFCE5C' },
+      { gradient: 'linear-gradient(135deg, #98FF98, #7AE07A)', color: '#7AE07A' },
+      { gradient: 'linear-gradient(135deg, #86CCCA, #6A9FB4)', color: '#6A9FB4' },
+      { gradient: 'linear-gradient(135deg, #FF71CE, #FF5CB8)', color: '#FF5CB8' },
+      { gradient: 'linear-gradient(135deg, #9B7DFF, #8B6AEE)', color: '#8B6AEE' },
+      { gradient: 'linear-gradient(135deg, #FFB347, #FFA033)', color: '#FFA033' },
+      { gradient: 'linear-gradient(135deg, #87CEEB, #6BB8D9)', color: '#6BB8D9' },
+    ];
+
+    // 创建气球
+    function createBalloon() {
+      if (!gameRunning) return;
+
+      const letter = String.fromCharCode(65 + Math.floor(Math.random() * 26));
+      const colorData = balloonColors[Math.floor(Math.random() * balloonColors.length)];
+
+      const balloon = {
+        id: balloonIdCounter++,
+        letter: letter,
+        x: 50 + Math.random() * (window.innerWidth - 170),
+        y: window.innerHeight + 100,
+        speed: 0.25 + Math.random() * 0.4,
+        color: colorData.gradient,
+        colorHex: colorData.color,
+        element: null
+      };
+
+      const el = document.createElement('div');
+      el.className = 'balloon';
+      el.id = 'balloon-' + balloon.id;
+      el.innerHTML = `
+        <div class="balloon-body" style="background: ${balloon.color}; color: ${balloon.colorHex};">
+          <div class="balloon-shine"></div>
+          <div class="balloon-letter">${balloon.letter}</div>
+        </div>
+      `;
+      el.style.left = balloon.x + 'px';
+      el.style.top = balloon.y + 'px';
+      el.style.animationDelay = (Math.random() * 2) + 's';
+
+      document.getElementById('gameContainer').appendChild(el);
+      balloon.element = el;
+
+      balloons.push(balloon);
+    }
+
+    // 发射炮弹 - 直接飞向目标
+    function fireBullet(letter) {
+      if (!gameRunning) return;
+
+      // 找到对应字母的气球
+      let targetBalloon = null;
+      for (const balloon of balloons) {
+        if (balloon.letter === letter) {
+          targetBalloon = balloon;
+          break;
+        }
+      }
+
+      // 如果没有目标气球，不发射
+      if (!targetBalloon) return;
+
+      const startX = window.innerWidth / 2 - 10;
+      const startY = window.innerHeight - 160;
+      const targetX = targetBalloon.x + 35;
+      const targetY = targetBalloon.y + 42;
+
+      const bullet = {
+        id: bulletIdCounter++,
+        letter: letter,
+        startX: startX,
+        startY: startY,
+        targetX: targetX,
+        targetY: targetY,
+        progress: 0,
+        speed: 0.04, // 飞行速度
+        element: null
+      };
+
+      const el = document.createElement('div');
+      el.className = 'bullet';
+      el.id = 'bullet-' + bullet.id;
+      el.style.left = startX + 'px';
+      el.style.top = startY + 'px';
+
+      // 添加尾焰
+      const trail = document.createElement('div');
+      trail.className = 'bullet-trail';
+      el.appendChild(trail);
+
+      // 添加发射闪光
+      const flash = document.createElement('div');
+      flash.className = 'fire-flash';
+      el.appendChild(flash);
+
+      document.getElementById('gameContainer').appendChild(el);
+      bullet.element = el;
+
+      bullets.push(bullet);
+    }
+
+    // 创建爆炸效果
+    function createExplosion(x, y, color) {
+      const explosion = document.createElement('div');
+      explosion.className = 'explosion';
+      explosion.style.left = x + 'px';
+      explosion.style.top = y + 'px';
+
+      // 粒子
+      const particleCount = 20;
+      for (let i = 0; i < particleCount; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'explosion-particle';
+        particle.style.background = color;
+        particle.style.width = (10 + Math.random() * 15) + 'px';
+        particle.style.height = particle.style.width;
+        const angle = (i / particleCount) * Math.PI * 2 + Math.random() * 0.3;
+        const distance = 60 + Math.random() * 60;
+        particle.style.setProperty('--tx', Math.cos(angle) * distance + 'px');
+        particle.style.setProperty('--ty', Math.sin(angle) * distance + 'px');
+        particle.style.animationDuration = (0.3 + Math.random() * 0.3) + 's';
+        explosion.appendChild(particle);
+      }
+
+      // 中心闪光
+      const flash = document.createElement('div');
+      flash.style.cssText = `
+        position: absolute;
+        width: 50px;
+        height: 50px;
+        background: radial-gradient(circle, white 0%, ${color} 40%, transparent 70%);
+        border-radius: 50%;
+        left: -25px;
+        top: -25px;
+        animation: flashBang 0.3s ease-out forwards;
+      `;
+      explosion.appendChild(flash);
+
+      document.getElementById('gameContainer').appendChild(explosion);
+      setTimeout(() => explosion.remove(), 600);
+    }
+
+    // 屏幕震动
+    function screenShake() {
+      document.body.classList.add('shake');
+      setTimeout(() => document.body.classList.remove('shake'), 350);
+    }
+
+    // 得分弹出
+    function showScorePopup(x, y) {
+      const popup = document.createElement('div');
+      popup.className = 'score-popup';
+      popup.textContent = '+10';
+      popup.style.left = x + 'px';
+      popup.style.top = y + 'px';
+      document.getElementById('gameContainer').appendChild(popup);
+      setTimeout(() => popup.remove(), 800);
+    }
+
+    // 击中气球
+    function hitBalloon(bullet, balloon, index) {
+      const hitX = balloon.x + 35;
+      const hitY = balloon.y + 42;
+
+      // 爆炸效果
+      createExplosion(hitX, hitY, balloon.colorHex);
+      screenShake();
+      showScorePopup(hitX, hitY - 20);
+
+      // 气球爆炸动画
+      balloon.element.classList.add('popping');
+      setTimeout(() => balloon.element.remove(), 250);
+
+      // 移除炮弹
+      bullet.element.remove();
+
+      // 从数组移除
+      const bulletIndex = bullets.indexOf(bullet);
+      if (bulletIndex > -1) bullets.splice(bulletIndex, 1);
+      balloons.splice(index, 1);
+
+      // 加分
+      score += 10;
+      document.getElementById('score').textContent = score;
+    }
+
+    // 游戏主循环
+    function gameLoop(timestamp) {
+      if (!gameRunning) return;
+
+      // 定时生成气球
+      if (timestamp - lastSpawnTime > 1800) {
+        createBalloon();
+        lastSpawnTime = timestamp;
+      }
+
+      // 更新炮弹
+      for (let i = bullets.length - 1; i >= 0; i--) {
+        const bullet = bullets[i];
+
+        // 贝塞尔曲线飞行：先向上飞，再曲线飞向目标
+        bullet.progress += bullet.speed;
+
+        if (bullet.progress >= 1) {
+          // 飞到目标点了，检查碰撞
+          const balloonIndex = balloons.findIndex(b => b.letter === bullet.letter);
+          if (balloonIndex > -1) {
+            hitBalloon(bullet, balloons[balloonIndex], balloonIndex);
+          } else {
+            bullet.element.remove();
+            bullets.splice(i, 1);
+          }
+          continue;
+        }
+
+        // 计算炮弹位置 - 弧形轨迹
+        const t = bullet.progress;
+        const controlY = Math.min(bullet.startY, bullet.targetY) - 200; // 控制点高度
+
+        // 二次贝塞尔曲线
+        const oneMinusT = 1 - t;
+        const x = oneMinusT * oneMinusT * bullet.startX + 2 * oneMinusT * t * ((bullet.startX + bullet.targetX) / 2) + t * t * bullet.targetX;
+        const y = oneMinusT * oneMinusT * bullet.startY + 2 * oneMinusT * t * controlY + t * t * bullet.targetY;
+
+        bullet.element.style.left = x + 'px';
+        bullet.element.style.top = y + 'px';
+
+        // 检查碰撞
+        const balloonIndex = balloons.findIndex(b => b.letter === bullet.letter);
+        if (balloonIndex > -1) {
+          const balloon = balloons[balloonIndex];
+          const balloonCenterX = balloon.x + 35;
+          const balloonCenterY = balloon.y + 42;
+          const dx = x + 10 - balloonCenterX;
+          const dy = y + 10 - balloonCenterY;
+          const distance = Math.sqrt(dx * dx + dy * dy);
+
+          if (distance < 50) {
+            hitBalloon(bullet, balloon, balloonIndex);
+          }
+        }
+      }
+
+      // 更新气球
+      for (let i = balloons.length - 1; i >= 0; i--) {
+        const balloon = balloons[i];
+        balloon.y -= balloon.speed;
+        balloon.element.style.top = balloon.y + 'px';
+
+        // 气球飘走
+        if (balloon.y < -100) {
+          balloon.element.remove();
+          balloons.splice(i, 1);
+        }
+      }
+
+      requestAnimationFrame(gameLoop);
+    }
+
+    // 键盘事件
+    document.addEventListener('keydown', (e) => {
+      if (!gameRunning) return;
+
+      const key = e.key.toUpperCase();
+      if (/^[A-Z]$/.test(key)) {
+        // 检查是否有这个字母的气球
+        const hasBalloon = balloons.some(b => b.letter === key);
+        if (hasBalloon) {
+          fireBullet(key);
+        }
+      }
+    });
+
+    // 开始游戏
+    function startGame() {
+      document.getElementById('startScreen').style.display = 'none';
+      document.getElementById('gameOverScreen').classList.remove('show');
+
+      score = 0;
+      balloons = [];
+      bullets = [];
+      document.getElementById('score').textContent = '0';
+      document.getElementById('gameContainer').innerHTML = '';
+
+      gameRunning = true;
+      lastSpawnTime = 0;
+
+      // 初始几个气球
+      for (let i = 0; i < 3; i++) {
+        setTimeout(() => createBalloon(), 500 + i * 400);
+      }
+
+      requestAnimationFrame(gameLoop);
+    }
+
+    // 游戏结束
+    function gameOver() {
+      gameRunning = false;
+      document.getElementById('finalScore').textContent = score;
+      document.getElementById('gameOverScreen').classList.add('show');
+    }
+
+    // 重新开始
+    function restartGame() {
+      startGame();
+    }
+  </script>
+</body>
+</html>
