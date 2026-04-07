@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>迷宫游戏</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      background: #1a1a2e;
+      font-family: 'Courier New', monospace;
+    }
+
+    h1 {
+      color: #fff;
+      font-size: 2rem;
+      margin-bottom: 10px;
+      text-shadow: 2px 2px 0 #e94560;
+    }
+
+    .info {
+      color: #aaa;
+      margin-bottom: 15px;
+      font-size: 0.9rem;
+    }
+
+    #gameCanvas {
+      border: 4px solid #e94560;
+      border-radius: 8px;
+      image-rendering: pixelated;
+      box-shadow: 0 0 30px rgba(233, 69, 96, 0.3);
+    }
+
+    #winMsg {
+      display: none;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: #16213e;
+      border: 4px solid #0f3460;
+      border-radius: 16px;
+      padding: 30px 50px;
+      text-align: center;
+      z-index: 100;
+    }
+
+    #winMsg h2 {
+      color: #00ff88;
+      font-size: 2rem;
+      margin-bottom: 15px;
+    }
+
+    #winMsg button {
+      background: #e94560;
+      color: #fff;
+      border: none;
+      padding: 10px 25px;
+      font-size: 1rem;
+      border-radius: 8px;
+      cursor: pointer;
+      font-family: inherit;
+    }
+
+    #winMsg button:hover {
+      background: #ff6b8a;
+    }
+  </style>
+</head>
+<body>
+  <h1>迷宫游戏</h1>
+  <p class="info">用方向键移动 · 到达绿色出口</p>
+  <canvas id="gameCanvas"></canvas>
+
+  <div id="winMsg">
+    <h2>你赢了!</h2>
+    <button onclick="restart()">再来一次</button>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+
+    const TILE = 36;
+    let COLS, ROWS;
+
+    const colors = {
+      wall: '#5c7cfa',
+      wallDark: '#4263eb',
+      floor: '#92e68a',
+      floorDark: '#7ed67a',
+      player: '#ff6b6b',
+      playerDark: '#ee5a5a',
+      exit: '#51cf66',
+      exitDark: '#40c057'
+    };
+
+    let maze = [];
+    let player = { x: 1, y: 1 };
+    let exit = { x: 1, y: 1 };
+    let won = false;
+
+    function initSize() {
+      const maxW = Math.floor((window.innerWidth - 40) / TILE);
+      const maxH = Math.floor((window.innerHeight - 150) / TILE);
+
+      COLS = Math.min(maxW, 35);
+      ROWS = Math.min(maxH, 20);
+
+      if (COLS % 2 === 0) COLS--;
+      if (ROWS % 2 === 0) ROWS--;
+
+      COLS = Math.max(COLS, 11);
+      ROWS = Math.max(ROWS, 9);
+
+      canvas.width = COLS * TILE;
+      canvas.height = ROWS * TILE;
+    }
+
+    function generateMaze() {
+      maze = [];
+      for (let y = 0; y < ROWS; y++) {
+        maze[y] = [];
+        for (let x = 0; x < COLS; x++) {
+          maze[y][x] = 1;
+        }
+      }
+
+      function carve(x, y) {
+        maze[y][x] = 0;
+        const dirs = [[0,-2],[0,2],[-2,0],[2,0]];
+        shuffle(dirs);
+
+        for (const [dx, dy] of dirs) {
+          const nx = x + dx;
+          const ny = y + dy;
+          if (nx > 0 && nx < COLS-1 && ny > 0 && ny < ROWS-1 && maze[ny][nx] === 1) {
+            maze[y + dy/2][x + dx/2] = 0;
+            carve(nx, ny);
+          }
+        }
+      }
+
+      carve(1, 1);
+
+      exit.x = COLS - 2;
+      exit.y = ROWS - 2;
+      maze[exit.y][exit.x] = 0;
+
+      if (maze[exit.y - 1][exit.x] === 1 && maze[exit.y][exit.x - 1] === 1) {
+        maze[exit.y - 1][exit.x] = 0;
+      }
+    }
+
+    function shuffle(arr) {
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+    }
+
+    function drawTile(x, y, color, darkColor) {
+      const px = x * TILE;
+      const py = y * TILE;
+
+      ctx.fillStyle = color;
+      ctx.fillRect(px, py, TILE, TILE);
+
+      ctx.fillStyle = darkColor;
+      ctx.fillRect(px, py + TILE - 4, TILE, 4);
+      ctx.fillRect(px + TILE - 4, py, 4, TILE);
+    }
+
+    function drawWall(x, y) {
+      const px = x * TILE;
+      const py = y * TILE;
+
+      ctx.fillStyle = colors.wallDark;
+      ctx.fillRect(px, py, TILE, TILE);
+
+      ctx.fillStyle = colors.wall;
+      ctx.fillRect(px + 2, py + 2, TILE - 8, TILE - 8);
+
+      ctx.fillStyle = '#74a0ff';
+      ctx.fillRect(px + 4, py + 4, TILE - 12, 4);
+    }
+
+    function drawPlayer() {
+      const px = player.x * TILE + TILE / 2;
+      const py = player.y * TILE + TILE / 2;
+      const r = TILE / 2 - 4;
+
+      ctx.fillStyle = colors.playerDark;
+      ctx.beginPath();
+      ctx.arc(px + 2, py + 2, r, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = colors.player;
+      ctx.beginPath();
+      ctx.arc(px, py, r, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = '#fff';
+      ctx.beginPath();
+      ctx.arc(px - 5, py - 5, 5, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    function drawExit() {
+      drawTile(exit.x, exit.y, colors.exit, colors.exitDark);
+
+      ctx.fillStyle = '#fff';
+      ctx.font = `${TILE * 0.6}px Arial`;
+      ctx.fillText('★', exit.x * TILE + 6, exit.y * TILE + TILE - 6);
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      for (let y = 0; y < ROWS; y++) {
+        for (let x = 0; x < COLS; x++) {
+          if (maze[y][x] === 1) {
+            drawWall(x, y);
+          } else {
+            drawTile(x, y, colors.floor, colors.floorDark);
+          }
+        }
+      }
+
+      drawExit();
+      drawPlayer();
+    }
+
+    function canMove(x, y) {
+      if (x < 0 || x >= COLS || y < 0 || y >= ROWS) return false;
+      return maze[y][x] === 0;
+    }
+
+    function move(dx, dy) {
+      if (won) return;
+
+      const nx = player.x + dx;
+      const ny = player.y + dy;
+
+      if (canMove(nx, ny)) {
+        player.x = nx;
+        player.y = ny;
+        draw();
+
+        if (player.x === exit.x && player.y === exit.y) {
+          won = true;
+          document.getElementById('winMsg').style.display = 'block';
+        }
+      }
+    }
+
+    function restart() {
+      generateMaze();
+      player = { x: 1, y: 1 };
+      won = false;
+      document.getElementById('winMsg').style.display = 'none';
+      draw();
+    }
+
+    document.addEventListener('keydown', (e) => {
+      switch (e.key) {
+        case 'ArrowUp': move(0, -1); e.preventDefault(); break;
+        case 'ArrowDown': move(0, 1); e.preventDefault(); break;
+        case 'ArrowLeft': move(-1, 0); e.preventDefault(); break;
+        case 'ArrowRight': move(1, 0); e.preventDefault(); break;
+      }
+    });
+
+    window.addEventListener('resize', () => {
+      initSize();
+      generateMaze();
+      player = { x: 1, y: 1 };
+      won = false;
+      document.getElementById('winMsg').style.display = 'none';
+      draw();
+    });
+
+    initSize();
+    generateMaze();
+    draw();
+  </script>
+</body>
+</html>
