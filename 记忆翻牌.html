@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>记忆翻牌 - Memory Match</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      background: linear-gradient(180deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+      font-family: 'Courier New', monospace;
+      overflow-x: hidden;
+      user-select: none;
+    }
+
+    h1 {
+      color: #fff;
+      font-size: 2rem;
+      margin-bottom: 2px;
+      text-shadow: 2px 2px 0 #e94560, 4px 4px 0 #000;
+      letter-spacing: 4px;
+    }
+
+    .subtitle {
+      color: #ffd700;
+      font-size: 0.8rem;
+      margin-bottom: 8px;
+      letter-spacing: 2px;
+    }
+
+    .info-bar {
+      display: flex;
+      gap: 20px;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .info-bar span {
+      color: #eee;
+      background: rgba(255,255,255,0.08);
+      padding: 5px 14px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      border: 1px solid rgba(255,255,255,0.15);
+    }
+
+    .info-bar .moves { color: #ffd700; }
+    .info-bar .timer { color: #00d2ff; }
+    .info-bar .score { color: #ff6b6b; }
+    .info-bar .stars-display { color: #ffd700; font-size: 1rem; }
+
+    .speech-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      cursor: pointer;
+      padding: 5px 12px;
+      border-radius: 20px;
+      border: 1px solid rgba(255,255,255,0.15);
+      background: rgba(255,255,255,0.06);
+      color: #aaa;
+      font-size: 0.8rem;
+      transition: all 0.3s;
+    }
+    .speech-toggle:hover { border-color: #00d2ff; color: #00d2ff; }
+    .speech-toggle.on {
+      border-color: #00d2ff;
+      color: #00d2ff;
+      background: rgba(0, 210, 255, 0.12);
+      box-shadow: 0 0 10px rgba(0, 210, 255, 0.15);
+    }
+
+    .level-select {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .level-select button {
+      background: rgba(255,255,255,0.08);
+      border: 2px solid rgba(255,255,255,0.2);
+      color: #aaa;
+      padding: 6px 16px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-family: 'Courier New', monospace;
+      font-size: 0.8rem;
+      transition: all 0.3s;
+      letter-spacing: 1px;
+    }
+
+    .level-select button:hover {
+      border-color: #ffd700;
+      color: #ffd700;
+      background: rgba(255,215,0,0.1);
+    }
+
+    .level-select button.active {
+      background: rgba(255,215,0,0.2);
+      border-color: #ffd700;
+      color: #ffd700;
+      box-shadow: 0 0 12px rgba(255,215,0,0.2);
+    }
+
+    .game-container {
+      perspective: 1200px;
+    }
+
+    .card-grid {
+      display: grid;
+      gap: 8px;
+      padding: 16px;
+      background: rgba(255,255,255,0.03);
+      border-radius: 16px;
+      border: 2px solid rgba(255,255,255,0.1);
+      box-shadow: 0 0 40px rgba(233, 69, 96, 0.15);
+    }
+
+    .card-grid.easy   { grid-template-columns: repeat(4, 1fr); }
+    .card-grid.medium { grid-template-columns: repeat(4, 1fr); }
+    .card-grid.hard   { grid-template-columns: repeat(6, 1fr); }
+
+    .card {
+      width: 90px;
+      height: 120px;
+      cursor: pointer;
+      position: relative;
+      transition: transform 0.15s ease;
+    }
+
+    .card:hover {
+      transform: scale(1.04);
+    }
+
+    .card.flipped .card-inner {
+      transform: rotateY(180deg);
+    }
+
+    .card.matched .card-inner {
+      transform: rotateY(180deg);
+    }
+
+    .card.matched {
+      animation: matchPulse 0.6s ease;
+    }
+
+    .card.wrong {
+      animation: shake 0.5s ease;
+    }
+
+    @keyframes matchPulse {
+      0% { transform: scale(1); }
+      30% { transform: scale(1.12); }
+      60% { transform: scale(0.95); }
+      100% { transform: scale(1); }
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      20% { transform: translateX(-6px); }
+      40% { transform: translateX(6px); }
+      60% { transform: translateX(-4px); }
+      80% { transform: translateX(4px); }
+    }
+
+    .card-inner {
+      width: 100%;
+      height: 100%;
+      position: relative;
+      transform-style: preserve-3d;
+      transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .card-front, .card-back {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      backface-visibility: hidden;
+      border-radius: 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 8px;
+    }
+
+    .card-back {
+      background: linear-gradient(135deg, #e94560 0%, #c23152 100%);
+      border: 3px solid #ff6b6b;
+      box-shadow: 0 4px 15px rgba(233, 69, 96, 0.3), inset 0 0 20px rgba(255,255,255,0.05);
+      font-size: 2rem;
+      color: #ffd700;
+    }
+
+    .card-back::after {
+      content: '';
+      position: absolute;
+      inset: 6px;
+      border: 2px dashed rgba(255,215,0,0.3);
+      border-radius: 6px;
+      pointer-events: none;
+    }
+
+    .card-front {
+      background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%);
+      border: 3px solid #00d2ff;
+      transform: rotateY(180deg);
+      box-shadow: 0 4px 15px rgba(0, 210, 255, 0.2);
+      gap: 4px;
+    }
+
+    .card.matched .card-front {
+      border-color: #ffd700;
+      background: linear-gradient(135deg, #1a3a2e 0%, #2d5a3e 100%);
+      box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+    }
+
+    .card-front .emoji {
+      font-size: 1.8rem;
+      line-height: 1;
+    }
+
+    .card-front .word {
+      font-size: 0.8rem;
+      font-weight: bold;
+      color: #fff;
+      letter-spacing: 1px;
+      line-height: 1.2;
+    }
+
+    .card-front .word-en {
+      color: #ffd700;
+      font-size: 0.9rem;
+    }
+
+    .card-front .word-cn {
+      color: #00d2ff;
+      font-size: 0.85rem;
+    }
+
+    .card-front .type-label {
+      font-size: 0.55rem;
+      color: rgba(255,255,255,0.4);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+
+    /* Controls */
+    .controls {
+      margin-top: 12px;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .btn {
+      background: rgba(255,255,255,0.08);
+      border: 2px solid rgba(255,255,255,0.2);
+      color: #aaa;
+      padding: 8px 20px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-family: 'Courier New', monospace;
+      font-size: 0.8rem;
+      transition: all 0.3s;
+      letter-spacing: 1px;
+    }
+
+    .btn:hover {
+      background: rgba(233,69,96,0.15);
+      border-color: #e94560;
+      color: #e94560;
+    }
+
+    .btn.highlight {
+      background: rgba(233,69,96,0.2);
+      border-color: #e94560;
+      color: #e94560;
+      animation: btnGlow 1.5s ease-in-out infinite;
+    }
+
+    @keyframes btnGlow {
+      0%, 100% { box-shadow: 0 0 5px rgba(233,69,96,0.3); }
+      50% { box-shadow: 0 0 20px rgba(233,69,96,0.5); }
+    }
+
+    /* Overlay */
+    #overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.7);
+      z-index: 100;
+      justify-content: center;
+      align-items: center;
+    }
+
+    #overlay.show {
+      display: flex;
+    }
+
+    #msgBox {
+      background: #1a1a2e;
+      border: 4px solid #ffd700;
+      border-radius: 20px;
+      padding: 30px 40px;
+      text-align: center;
+      box-shadow: 0 0 60px rgba(255,215,0,0.3);
+      animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    @keyframes popIn {
+      0% { transform: scale(0.5); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    #msgBox h2 {
+      font-size: 2rem;
+      margin-bottom: 8px;
+      letter-spacing: 2px;
+    }
+
+    #msgBox .big-emoji {
+      font-size: 3rem;
+      display: block;
+      margin-bottom: 10px;
+    }
+
+    #msgBox .stat {
+      color: #aaa;
+      font-size: 0.85rem;
+      margin: 4px 0;
+    }
+
+    #msgBox .stat span {
+      color: #ffd700;
+      font-weight: bold;
+    }
+
+    #msgBox .stars-big {
+      font-size: 2.5rem;
+      margin: 10px 0;
+      letter-spacing: 6px;
+    }
+
+    /* Particles */
+    .particle {
+      position: fixed;
+      pointer-events: none;
+      z-index: 200;
+      font-size: 1.5rem;
+      animation: particleUp 0.8s ease-out forwards;
+    }
+
+    @keyframes particleUp {
+      0% { transform: translateY(0) scale(1); opacity: 1; }
+      100% { transform: translateY(-80px) scale(0.3); opacity: 0; }
+    }
+
+    /* Responsive */
+    @media (max-width: 500px) {
+      .card { width: 70px; height: 95px; }
+      .card-front .emoji { font-size: 1.3rem; }
+      .card-front .word { font-size: 0.65rem; }
+      .card-front .type-label { font-size: 0.5rem; }
+      .card-back { font-size: 1.5rem; }
+      .card-grid { gap: 5px; padding: 10px; }
+      h1 { font-size: 1.4rem; }
+      .info-bar { gap: 8px; }
+      .info-bar span { font-size: 0.7rem; padding: 4px 10px; }
+    }
+  </style>
+</head>
+<body>
+  <h1>🧠 记忆翻牌</h1>
+  <p class="subtitle">Memory Match · English & Chinese</p>
+
+  <div class="info-bar">
+    <span class="moves">🔄 步数: <b id="moves">0</b></span>
+    <span class="timer">⏱ 时间: <b id="timer">00:00</b></span>
+    <span class="score">🎯 配对: <b id="pairs">0/6</b></span>
+    <span class="stars-display" id="starsDisplay">⭐⭐⭐</span>
+    <span class="speech-toggle on" id="speechToggle" title="语音播报开关">🔊 语音</span>
+  </div>
+
+  <div class="level-select">
+    <button class="active" data-level="easy">🌟 简单 4×3</button>
+    <button data-level="medium">⭐⭐ 中等 4×4</button>
+    <button data-level="hard">⭐⭐⭐ 困难 6×4</button>
+  </div>
+
+  <div class="game-container">
+    <div class="card-grid easy" id="grid"></div>
+  </div>
+
+  <div class="controls">
+    <button class="btn highlight" id="btnRestart">🔀 重新开始</button>
+  </div>
+
+  <div id="overlay">
+    <div id="msgBox">
+      <span class="big-emoji" id="winEmoji">🎉</span>
+      <h2 id="winTitle">太棒了！</h2>
+      <div class="stars-big" id="winStars">⭐⭐⭐</div>
+      <p class="stat">🔄 步数: <span id="winMoves">0</span></p>
+      <p class="stat">⏱ 时间: <span id="winTime">00:00</span></p>
+      <p class="stat">🏆 评价: <span id="winRating">完美记忆！</span></p>
+      <button class="btn highlight" id="btnPlayAgain" style="margin-top:16px;">🎮 再来一局</button>
+    </div>
+  </div>
+
+  <script>
+    // ==================== Word Data ====================
+    const WORD_POOL = [
+      { en: 'apple',  cn: '苹果',   emoji: '🍎' },
+      { en: 'cat',    cn: '猫',     emoji: '🐱' },
+      { en: 'dog',    cn: '狗',     emoji: '🐶' },
+      { en: 'sun',    cn: '太阳',   emoji: '☀️' },
+      { en: 'star',   cn: '星星',   emoji: '⭐' },
+      { en: 'fish',   cn: '鱼',     emoji: '🐟' },
+      { en: 'bird',   cn: '小鸟',   emoji: '🐦' },
+      { en: 'book',   cn: '书',     emoji: '📖' },
+      { en: 'cake',   cn: '蛋糕',   emoji: '🎂' },
+      { en: 'ball',   cn: '球',     emoji: '⚽' },
+      { en: 'tree',   cn: '树',     emoji: '🌳' },
+      { en: 'moon',   cn: '月亮',   emoji: '🌙' },
+      { en: 'flower', cn: '花',     emoji: '🌸' },
+      { en: 'car',    cn: '汽车',   emoji: '🚗' },
+      { en: 'house',  cn: '房子',   emoji: '🏠' },
+      { en: 'milk',   cn: '牛奶',   emoji: '🥛' },
+      { en: 'bear',   cn: '熊',     emoji: '🐻' },
+      { en: 'rain',   cn: '雨',     emoji: '🌧️' },
+      { en: 'egg',    cn: '鸡蛋',   emoji: '🥚' },
+      { en: 'hat',    cn: '帽子',   emoji: '🎩' },
+    ];
+
+    // ==================== Game State ====================
+    const LEVELS = {
+      easy:   { cols: 4, pairs: 6,  label: '简单 4×3' },
+      medium: { cols: 4, pairs: 8,  label: '中等 4×4' },
+      hard:   { cols: 6, pairs: 12, label: '困难 6×4' },
+    };
+
+    let currentLevel = 'easy';
+    let cards = [];
+    let flippedCards = [];
+    let matchedPairs = 0;
+    let moves = 0;
+    let timerSec = 0;
+    let timerInterval = null;
+    let isLocked = false; // prevent flipping during check
+
+    // ==================== DOM Refs ====================
+    const grid = document.getElementById('grid');
+    const movesEl = document.getElementById('moves');
+    const timerEl = document.getElementById('timer');
+    const pairsEl = document.getElementById('pairs');
+    const starsDisplay = document.getElementById('starsDisplay');
+    const overlay = document.getElementById('overlay');
+    const btnRestart = document.getElementById('btnRestart');
+    const btnPlayAgain = document.getElementById('btnPlayAgain');
+    const levelBtns = document.querySelectorAll('.level-select button');
+
+    // ==================== Audio (Web Audio API, no files needed) ====================
+    let audioCtx = null;
+
+    function getAudioCtx() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      return audioCtx;
+    }
+
+    function playBeep(freq, duration, type = 'sine', vol = 0.08) {
+      try {
+        const ctx = getAudioCtx();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, ctx.currentTime);
+        gain.gain.setValueAtTime(vol, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(ctx.currentTime);
+        osc.stop(ctx.currentTime + duration);
+      } catch (e) { /* audio not available */ }
+    }
+
+    function sfxFlip()    { playBeep(600, 0.1, 'sine', 0.06); }
+    function sfxMatch()   { playBeep(800, 0.15, 'sine', 0.08); setTimeout(() => playBeep(1200, 0.2, 'sine', 0.07), 120); }
+    function sfxWrong()   { playBeep(200, 0.3, 'triangle', 0.06); }
+    function sfxWin()     {
+      [523, 659, 784, 1047].forEach((f, i) => setTimeout(() => playBeep(f, 0.3, 'sine', 0.07), i * 120));
+    }
+
+    // ==================== Speech Synthesis ====================
+    let speechEnabled = true;
+
+    function speakWord(text, lang) {
+      if (!speechEnabled) return;
+      if (!('speechSynthesis' in window)) return;
+      try {
+        // Cancel any ongoing speech first
+        window.speechSynthesis.cancel();
+        const utter = new SpeechSynthesisUtterance(text);
+        utter.lang = lang;
+        utter.rate = lang === 'en-US' ? 0.85 : 0.9; // slightly slower for learners
+        utter.pitch = 1.1;
+        utter.volume = 0.8;
+        window.speechSynthesis.speak(utter);
+      } catch (e) { /* speech not available */ }
+    }
+
+    function speakCard(card) {
+      if (card.type === 'en') {
+        // English card: speak the English word
+        speakWord(card.word.en, 'en-US');
+      } else {
+        // Chinese card: speak the Chinese word
+        speakWord(card.word.cn, 'zh-CN');
+      }
+    }
+
+    // Speech toggle
+    document.addEventListener('DOMContentLoaded', () => {
+      const toggle = document.getElementById('speechToggle');
+      if (toggle) {
+        toggle.addEventListener('click', () => {
+          speechEnabled = !speechEnabled;
+          toggle.classList.toggle('on', speechEnabled);
+          toggle.textContent = speechEnabled ? '🔊 语音' : '🔇 静音';
+        });
+      }
+    });
+
+    // ==================== Timer ====================
+    function startTimer() {
+      stopTimer();
+      timerInterval = setInterval(() => {
+        timerSec++;
+        updateTimerDisplay();
+      }, 1000);
+    }
+
+    function stopTimer() {
+      if (timerInterval) {
+        clearInterval(timerInterval);
+        timerInterval = null;
+      }
+    }
+
+    function updateTimerDisplay() {
+      const m = Math.floor(timerSec / 60).toString().padStart(2, '0');
+      const s = (timerSec % 60).toString().padStart(2, '0');
+      timerEl.textContent = `${m}:${s}`;
+    }
+
+    // ==================== Stars ====================
+    function getStars() {
+      const level = LEVELS[currentLevel];
+      const optimal = level.pairs; // optimal moves = pairs (all matched immediately)
+      const ratio = moves / level.pairs;
+      if (ratio <= 1.5) return 3;
+      if (ratio <= 2.5) return 2;
+      return 1;
+    }
+
+    function updateStarsDisplay() {
+      const s = getStars();
+      starsDisplay.textContent = '⭐'.repeat(s) + '☆'.repeat(3 - s);
+    }
+
+    // ==================== Particles ====================
+    function spawnParticles(x, y, emoji, count = 6) {
+      for (let i = 0; i < count; i++) {
+        const p = document.createElement('div');
+        p.className = 'particle';
+        p.textContent = emoji;
+        p.style.left = x + 'px';
+        p.style.top = y + 'px';
+        const angle = (Math.PI * 2 * i) / count + (Math.random() - 0.5) * 0.5;
+        const dist = 30 + Math.random() * 40;
+        p.style.setProperty('--dx', Math.cos(angle) * dist + 'px');
+        p.style.setProperty('--dy', Math.sin(angle) * dist - 30 + 'px');
+        p.style.animation = 'none';
+        p.style.offsetPath = `path("M0,0 Q${Math.cos(angle)*20},${-40-Math.random()*30} ${Math.cos(angle)*dist},${Math.sin(angle)*dist-30}")`;
+        p.style.animation = `particleUp ${0.6 + Math.random() * 0.4}s ease-out forwards`;
+        document.body.appendChild(p);
+        setTimeout(() => p.remove(), 1000);
+      }
+    }
+
+    // ==================== Card Creation ====================
+    function shuffle(arr) {
+      const a = [...arr];
+      for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+      }
+      return a;
+    }
+
+    function createCards() {
+      const level = LEVELS[currentLevel];
+      const pool = shuffle(WORD_POOL).slice(0, level.pairs);
+
+      // Each pair: one English card + one Chinese card
+      cards = [];
+      pool.forEach((word, idx) => {
+        // English card
+        cards.push({
+          id: idx,
+          type: 'en',
+          display: word.en,
+          display2: word.cn, // shown smaller on match
+          emoji: word.emoji,
+          word: word,
+          pairId: idx,
+        });
+        // Chinese card
+        cards.push({
+          id: idx,
+          type: 'cn',
+          display: word.cn,
+          display2: word.en,
+          emoji: word.emoji,
+          word: word,
+          pairId: idx,
+        });
+      });
+
+      cards = shuffle(cards);
+      cards.forEach((c, i) => { c.index = i; });
+    }
+
+    function renderGrid() {
+      const level = LEVELS[currentLevel];
+      grid.innerHTML = '';
+      grid.className = 'card-grid ' + currentLevel;
+      // Set CSS variable for columns if needed
+      grid.style.gridTemplateColumns = `repeat(${level.cols}, 1fr)`;
+
+      cards.forEach((card, idx) => {
+        const cardEl = document.createElement('div');
+        cardEl.className = 'card';
+        cardEl.dataset.index = idx;
+        cardEl.innerHTML = `
+          <div class="card-inner">
+            <div class="card-back">?</div>
+            <div class="card-front">
+              <span class="emoji">${card.emoji}</span>
+              <span class="word ${card.type === 'en' ? 'word-en' : 'word-cn'}">${card.display}</span>
+              <span class="type-label">${card.type === 'en' ? 'English' : '中文'}</span>
+            </div>
+          </div>
+        `;
+        cardEl.addEventListener('click', () => onCardClick(idx, cardEl));
+        grid.appendChild(cardEl);
+        cardEl._data = card;
+      });
+    }
+
+    // ==================== Game Logic ====================
+    function onCardClick(idx, cardEl) {
+      if (isLocked) return;
+      if (cardEl.classList.contains('flipped')) return;
+      if (cardEl.classList.contains('matched')) return;
+      if (flippedCards.length >= 2) return;
+
+      // Start timer on first click
+      if (moves === 0 && flippedCards.length === 0) {
+        startTimer();
+      }
+
+      // Flip card
+      cardEl.classList.add('flipped');
+      sfxFlip();
+      speakCard(cards[idx]); // voice announcement
+      flippedCards.push({ idx, el: cardEl, card: cards[idx] });
+
+      if (flippedCards.length === 2) {
+        moves++;
+        movesEl.textContent = moves;
+        updateStarsDisplay();
+        checkMatch();
+      }
+    }
+
+    function checkMatch() {
+      isLocked = true;
+      const [first, second] = flippedCards;
+
+      if (first.card.pairId === second.card.pairId && first.card.type !== second.card.type) {
+        // Match!
+        setTimeout(() => {
+          first.el.classList.add('matched');
+          second.el.classList.add('matched');
+          matchedPairs++;
+          pairsEl.textContent = `${matchedPairs}/${LEVELS[currentLevel].pairs}`;
+          sfxMatch();
+          speakWord(first.card.word.en, 'en-US'); // reinforce English word on match
+
+          // Particles at both card positions
+          const r1 = first.el.getBoundingClientRect();
+          const r2 = second.el.getBoundingClientRect();
+          const emoji = first.card.emoji;
+          spawnParticles(r1.left + r1.width/2, r1.top + r1.height/2, emoji);
+          spawnParticles(r2.left + r2.width/2, r2.top + r2.height/2, emoji);
+
+          flippedCards = [];
+          isLocked = false;
+
+          // Check win
+          if (matchedPairs === LEVELS[currentLevel].pairs) {
+            win();
+          }
+        }, 350);
+      } else {
+        // No match
+        setTimeout(() => {
+          first.el.classList.add('wrong');
+          second.el.classList.add('wrong');
+          sfxWrong();
+          setTimeout(() => {
+            first.el.classList.remove('flipped', 'wrong');
+            second.el.classList.remove('flipped', 'wrong');
+            flippedCards = [];
+            isLocked = false;
+          }, 500);
+        }, 400);
+      }
+    }
+
+    function win() {
+      stopTimer();
+      sfxWin();
+
+      const stars = getStars();
+      const starEmojis = ['😢', '😊', '😎', '🤩'];
+      const ratings = ['', '继续加油！', '很棒！', '完美记忆！'];
+      const winEmojis = ['', '👏', '🌟', '🏆'];
+
+      setTimeout(() => {
+        document.getElementById('winEmoji').textContent = winEmojis[stars];
+        document.getElementById('winTitle').textContent =
+          stars === 3 ? '太棒了！' : stars === 2 ? '做得不错！' : '完成了！';
+        document.getElementById('winStars').textContent = '⭐'.repeat(stars) + '☆'.repeat(3 - stars);
+        document.getElementById('winMoves').textContent = moves;
+        document.getElementById('winTime').textContent = timerEl.textContent;
+        document.getElementById('winRating').textContent = ratings[stars];
+        overlay.classList.add('show');
+      }, 600);
+    }
+
+    // ==================== Init / Restart ====================
+    function initGame() {
+      stopTimer();
+      timerSec = 0;
+      moves = 0;
+      matchedPairs = 0;
+      flippedCards = [];
+      isLocked = false;
+      updateTimerDisplay();
+      movesEl.textContent = '0';
+      pairsEl.textContent = `0/${LEVELS[currentLevel].pairs}`;
+      updateStarsDisplay();
+      overlay.classList.remove('show');
+      createCards();
+      renderGrid();
+    }
+
+    // ==================== Event Handlers ====================
+    btnRestart.addEventListener('click', initGame);
+    btnPlayAgain.addEventListener('click', initGame);
+
+    levelBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        currentLevel = btn.dataset.level;
+        levelBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        initGame();
+      });
+    });
+
+    // ==================== Keyboard shortcut ====================
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'r' || e.key === 'R') {
+        initGame();
+      }
+    });
+
+    // ==================== Start ====================
+    initGame();
+  </script>
+</body>
+</html>

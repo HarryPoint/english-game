@@ -1,0 +1,1424 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>打地鼠学英语</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      background: linear-gradient(180deg, #87CEEB 0%, #228B22 40%, #1a5c1a 100%);
+      font-family: 'Courier New', monospace;
+      user-select: none;
+      overflow-x: hidden;
+    }
+
+    h1 {
+      color: #fff;
+      font-size: 2rem;
+      margin-bottom: 2px;
+      text-shadow: 2px 2px 0 #8B4513, 4px 4px 0 #000;
+      letter-spacing: 4px;
+    }
+
+    .subtitle {
+      color: #ffd700;
+      font-size: 0.8rem;
+      margin-bottom: 6px;
+      letter-spacing: 2px;
+      text-shadow: 1px 1px 0 #000;
+    }
+
+    .info-bar {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 8px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .info-bar span {
+      color: #fff;
+      background: rgba(0,0,0,0.4);
+      padding: 5px 14px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      border: 1px solid rgba(255,255,255,0.2);
+      text-shadow: 1px 1px 0 #000;
+    }
+
+    .info-bar .score-val { color: #ffd700; }
+    .info-bar .timer-val { color: #00d2ff; }
+    .info-bar .combo-val { color: #ff6b6b; }
+    .info-bar .best-val { color: #ffd700; }
+
+    .speech-toggle {
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    .speech-toggle.on {
+      border-color: #00d2ff !important;
+      color: #00d2ff !important;
+      background: rgba(0,210,255,0.2) !important;
+      box-shadow: 0 0 10px rgba(0,210,255,0.2);
+    }
+
+    .level-select {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+
+    .level-select button {
+      background: rgba(0,0,0,0.3);
+      border: 2px solid rgba(255,255,255,0.25);
+      color: #ccc;
+      padding: 6px 16px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-family: 'Courier New', monospace;
+      font-size: 0.8rem;
+      transition: all 0.3s;
+      letter-spacing: 1px;
+      text-shadow: 1px 1px 0 #000;
+    }
+
+    .level-select button:hover {
+      border-color: #ffd700;
+      color: #ffd700;
+      background: rgba(255,215,0,0.15);
+    }
+
+    .level-select button.active {
+      background: rgba(255,215,0,0.25);
+      border-color: #ffd700;
+      color: #ffd700;
+      box-shadow: 0 0 12px rgba(255,215,0,0.25);
+    }
+
+    #gameCanvas {
+      border: 4px solid #8B4513;
+      border-radius: 12px;
+      box-shadow: 0 0 30px rgba(0,0,0,0.4);
+      cursor: none;
+    }
+
+    .game-area {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .controls {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      align-items: center;
+      min-width: 120px;
+    }
+
+    .side-stat {
+      background: rgba(0,0,0,0.3);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 12px;
+      padding: 10px 14px;
+      text-align: center;
+      color: #ccc;
+      font-size: 0.75rem;
+      width: 100%;
+    }
+
+    .side-stat b {
+      display: block;
+      font-size: 1.3rem;
+      color: #ffd700;
+      margin-top: 2px;
+    }
+
+    .side-stat .label {
+      color: #aaa;
+      font-size: 0.65rem;
+      letter-spacing: 1px;
+    }
+
+    .btn {
+      background: rgba(0,0,0,0.3);
+      border: 2px solid rgba(255,255,255,0.25);
+      color: #ccc;
+      padding: 8px 20px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-family: 'Courier New', monospace;
+      font-size: 0.8rem;
+      transition: all 0.3s;
+      letter-spacing: 1px;
+    }
+
+    .btn:hover {
+      background: rgba(255,107,107,0.2);
+      border-color: #ff6b6b;
+      color: #ff6b6b;
+    }
+
+    .btn.highlight {
+      background: rgba(255,107,107,0.25);
+      border-color: #ff6b6b;
+      color: #ff6b6b;
+      animation: btnGlow 1.5s ease-in-out infinite;
+    }
+
+    @keyframes btnGlow {
+      0%, 100% { box-shadow: 0 0 5px rgba(255,107,107,0.3); }
+      50% { box-shadow: 0 0 20px rgba(255,107,107,0.5); }
+    }
+
+    /* Overlay */
+    #overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.65);
+      z-index: 100;
+      justify-content: center;
+      align-items: center;
+    }
+    #overlay.show { display: flex; }
+
+    #msgBox {
+      background: #1a1a2e;
+      border: 4px solid #ffd700;
+      border-radius: 20px;
+      padding: 30px 45px;
+      text-align: center;
+      box-shadow: 0 0 60px rgba(255,215,0,0.3);
+      animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    @keyframes popIn {
+      0% { transform: scale(0.5); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    #msgBox h2 { font-size: 2rem; margin-bottom: 6px; letter-spacing: 2px; color: #fff; }
+    #msgBox .big-emoji { font-size: 3rem; display: block; margin-bottom: 8px; }
+    #msgBox .stat { color: #aaa; font-size: 0.85rem; margin: 4px 0; }
+    #msgBox .stat span { color: #ffd700; font-weight: bold; }
+    #msgBox .stars-big { font-size: 2.5rem; margin: 8px 0; letter-spacing: 6px; }
+
+    #msgBox .hit-words {
+      margin-top: 12px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: center;
+      max-width: 300px;
+    }
+    #msgBox .hit-word {
+      background: rgba(255,215,0,0.15);
+      border: 1px solid rgba(255,215,0,0.3);
+      border-radius: 12px;
+      padding: 4px 12px;
+      color: #ffd700;
+      font-size: 0.8rem;
+    }
+
+    /* Responsive */
+    @media (max-width: 650px) {
+      .game-area { flex-direction: column; gap: 12px; }
+      .controls { flex-direction: row; flex-wrap: wrap; min-width: auto; }
+      .side-stat { width: auto; flex: 1; min-width: 80px; }
+      #gameCanvas { width: 340px; height: 360px; }
+      h1 { font-size: 1.4rem; }
+      .info-bar { gap: 6px; }
+      .info-bar span { font-size: 0.7rem; padding: 4px 8px; }
+    }
+  </style>
+</head>
+<body>
+  <h1>🔨 打地鼠学英语</h1>
+  <p class="subtitle">Whack-a-Mole · English Vocabulary</p>
+
+  <div class="info-bar">
+    <span class="score-val">🎯 得分: <b id="score">0</b></span>
+    <span class="timer-val">⏱ 时间: <b id="timer">30s</b></span>
+    <span class="combo-val">🔥 连击: <b id="combo">0</b></span>
+    <span class="best-val">🏆 最佳: <b id="bestScore">-</b></span>
+    <span class="speech-toggle on" id="speechToggle" title="语音播报开关">🔊</span>
+    <span class="speech-toggle" id="musicToggle" title="背景音乐开关">🎵</span>
+  </div>
+
+  <div class="level-select">
+    <button class="active" data-level="easy">🌟 简单 30s</button>
+    <button data-level="medium">⭐⭐ 中等 60s</button>
+    <button data-level="hard">⭐⭐⭐ 困难 90s</button>
+  </div>
+
+  <div class="game-area">
+    <canvas id="gameCanvas" width="420" height="440"></canvas>
+
+    <div class="controls">
+      <div class="side-stat">
+        <span class="label">🎯 得分</span>
+        <b id="sideScore">0</b>
+      </div>
+      <div class="side-stat">
+        <span class="label">🔥 连击</span>
+        <b id="sideCombo">0</b>
+      </div>
+      <button class="btn highlight" id="btnStart">▶ 开始游戏</button>
+      <button class="btn" id="btnSideRestart" style="display:none;">🔁 重新开始</button>
+    </div>
+  </div>
+
+  <div id="overlay">
+    <div id="msgBox">
+      <span class="big-emoji" id="winEmoji">🎉</span>
+      <h2 id="winTitle">时间到！</h2>
+      <div class="stars-big" id="winStars">⭐⭐⭐</div>
+      <p class="stat">🎯 得分: <span id="winScore">0</span></p>
+      <p class="stat">🔥 最大连击: <span id="winCombo">0</span></p>
+      <p class="stat">💥 命中: <span id="winHits">0</span></p>
+      <p class="stat">❌ 失误: <span id="winMisses">0</span></p>
+      <p class="stat">📝 学到的单词:</p>
+      <div class="hit-words" id="winWords"></div>
+      <button class="btn highlight" id="btnPlayAgain" style="margin-top:14px;">🔁 再来一局</button>
+    </div>
+  </div>
+
+  <script>
+    // ==================== Word Data ====================
+    const WORD_POOL = [
+      'apple', 'banana', 'cat', 'dog', 'sun', 'star', 'fish',
+      'bird', 'book', 'cake', 'ball', 'tree', 'moon', 'flower',
+      'car', 'house', 'milk', 'bear', 'rain', 'egg', 'hat',
+      'cake', 'duck', 'frog', 'goat', 'hill', 'ice', 'jump',
+      'kite', 'lion', 'nest', 'owl', 'pig', 'queen', 'rose',
+      'ship', 'toy', 'van', 'wolf', 'yarn', 'zebra', 'cloud',
+      'drum', 'flag', 'grape', 'heart', 'key', 'lamp', 'mouse',
+    ];
+
+    // ==================== Canvas (HiDPI support) ====================
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const DISPLAY_W = 420;
+    const DISPLAY_H = 440;
+
+    function setupCanvas() {
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = DISPLAY_W * dpr;
+      canvas.height = DISPLAY_H * dpr;
+      canvas.style.width = DISPLAY_W + 'px';
+      canvas.style.height = DISPLAY_H + 'px';
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+    setupCanvas();
+    window.addEventListener('resize', setupCanvas);
+
+    const W = DISPLAY_W;
+    const H = DISPLAY_H;
+
+    // ==================== Game State ====================
+    const LEVELS = {
+      easy:   { time: 30,  speed: 2500, maxMoles: 1, label: '简单' },
+      medium: { time: 60,  speed: 2000, maxMoles: 2, label: '中等' },
+      hard:   { time: 90,  speed: 1500, maxMoles: 3, label: '困难' },
+    };
+
+    let currentLevel = 'easy';
+    let score = 0;
+    let combo = 0;
+    let maxCombo = 0;
+    let hits = 0;
+    let misses = 0;
+    let timeLeft = 30;
+    let bestScore = { easy: 0, medium: 0, hard: 0 };
+    let hitWords = new Set();
+
+    let gameRunning = false;
+    let gameOver = false;
+    let timerInterval = null;
+    let spawnInterval = null;
+    let animFrameId = null;
+
+    // Holes: 3x3 grid
+    const COLS = 3, ROWS = 3;
+    const HOLE_RADIUS = 42;
+    const MOLE_RADIUS = 36;
+    const holes = [];
+    let activeMoles = []; // { holeIndex, word, state:'rising'|'up'|'falling', progress, isGolden, isBomb }
+
+    // Layout calculation
+    const GRID_TOP = 100;
+    const GRID_LEFT = 45;
+    const GRID_W = W - GRID_LEFT * 2;
+    const GRID_H = 300;
+    const CELL_W = GRID_W / COLS;
+    const CELL_H = GRID_H / ROWS;
+
+    function getHolePos(i) {
+      const col = i % COLS;
+      const row = Math.floor(i / COLS);
+      return {
+        x: GRID_LEFT + col * CELL_W + CELL_W / 2,
+        y: GRID_TOP + row * CELL_H + CELL_H / 2 + 10,
+        col, row
+      };
+    }
+
+    // Init holes
+    for (let i = 0; i < COLS * ROWS; i++) {
+      holes.push(getHolePos(i));
+    }
+
+    // ==================== Speech ====================
+    let speechEnabled = true;
+
+    function speakWord(word) {
+      if (!speechEnabled) return;
+      if (!('speechSynthesis' in window)) return;
+      try {
+        window.speechSynthesis.cancel();
+        const utter = new SpeechSynthesisUtterance(word);
+        utter.lang = 'en-US';
+        utter.rate = 0.8;
+        utter.pitch = 1.1;
+        utter.volume = 0.7;
+        window.speechSynthesis.speak(utter);
+      } catch (e) { /* not available */ }
+    }
+
+    // ==================== Sound Effects & Music ====================
+    let audioCtx = null;
+    let musicGain = null;
+    let musicPlaying = false;
+    let musicInterval = null;
+
+    function getAudioCtx() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      // Resume if suspended (browser autoplay policy)
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+      return audioCtx;
+    }
+
+    function playTone(freq, duration, type = 'sine', vol = 0.08, delay = 0) {
+      try {
+        const ctx = getAudioCtx();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, ctx.currentTime + delay);
+        gain.gain.setValueAtTime(vol, ctx.currentTime + delay);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + delay + duration);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(ctx.currentTime + delay);
+        osc.stop(ctx.currentTime + delay + duration);
+      } catch (e) { /* audio not available */ }
+    }
+
+    // Mole squeak when hit — short ascending chirp
+    function sfxHit() {
+      getAudioCtx();
+      playTone(600, 0.06, 'sine', 0.07);
+      playTone(900, 0.08, 'sine', 0.06, 0.04);
+      playTone(1200, 0.06, 'sine', 0.04, 0.06);
+    }
+
+    // Golden mole hit — sparkly sound
+    function sfxGoldenHit() {
+      getAudioCtx();
+      playTone(800, 0.1, 'sine', 0.07);
+      playTone(1200, 0.12, 'sine', 0.07, 0.06);
+      playTone(1600, 0.1, 'sine', 0.05, 0.1);
+      playTone(2000, 0.08, 'sine', 0.04, 0.14);
+    }
+
+    // Miss/bomb sound
+    function sfxMiss() {
+      playTone(200, 0.25, 'triangle', 0.06);
+    }
+
+    // Level complete
+    function sfxWin() {
+      getAudioCtx();
+      [523, 659, 784, 1047].forEach((f, i) => setTimeout(() => playTone(f, 0.3, 'sine', 0.06), i * 100));
+    }
+
+    // ==================== Background Music ====================
+    // Cheerful background melody (procedural, no files needed)
+    const MELODY = [
+      // Simple happy tune — notes in Hz, duration in beats
+      { note: 523, dur: 0.25 },  // C5
+      { note: 587, dur: 0.25 },  // D5
+      { note: 659, dur: 0.25 },  // E5
+      { note: 523, dur: 0.25 },  // C5
+      { note: 659, dur: 0.25 },  // E5
+      { note: 784, dur: 0.5  },  // G5
+      { note: 784, dur: 0.5  },  // G5 (hold)
+      { note: 659, dur: 0.25 },  // E5
+      { note: 587, dur: 0.25 },  // D5
+      { note: 523, dur: 0.25 },  // C5
+      { note: 659, dur: 0.25 },  // E5
+      { note: 784, dur: 0.5  },  // G5
+      { note: 659, dur: 0.5  },  // E5
+      { note: 523, dur: 0.25 },  // C5
+      { note: 587, dur: 0.25 },  // D5
+      { note: 523, dur: 0.75 },  // C5 (end phrase)
+    ];
+
+    const BPM = 110;
+    const BEAT_DURATION = 60 / BPM;
+    let musicNoteIdx = 0;
+
+    function startMusic() {
+      if (musicPlaying || !musicEnabled) return;
+      try {
+        const ctx = getAudioCtx();
+        if (!musicGain) {
+          musicGain = ctx.createGain();
+          musicGain.gain.setValueAtTime(0.03, ctx.currentTime);
+          musicGain.connect(ctx.destination);
+        }
+        musicPlaying = true;
+        musicNoteIdx = 0;
+        playNextNote();
+      } catch (e) { /* not available */ }
+    }
+
+    function playNextNote() {
+      if (!musicPlaying) return;
+      try {
+        const ctx = getAudioCtx();
+        const m = MELODY[musicNoteIdx % MELODY.length];
+        const osc = ctx.createOscillator();
+        const noteGain = ctx.createGain();
+        osc.type = 'triangle';
+
+        const now = ctx.currentTime;
+        const duration = m.dur * BEAT_DURATION * 2;
+        osc.frequency.setValueAtTime(m.note, now);
+        // Soft attack/release envelope
+        noteGain.gain.setValueAtTime(0, now);
+        noteGain.gain.linearRampToValueAtTime(0.04, now + 0.02);
+        noteGain.gain.exponentialRampToValueAtTime(0.001, now + duration - 0.03);
+
+        osc.connect(noteGain);
+        noteGain.connect(musicGain);
+
+        osc.start(now);
+        osc.stop(now + duration);
+
+        musicNoteIdx++;
+        const gap = 60;
+        const interval = (m.dur * BEAT_DURATION * 1000 * 2) + gap;
+        musicInterval = setTimeout(playNextNote, interval);
+      } catch (e) { stopMusic(); }
+    }
+
+    function stopMusic() {
+      musicPlaying = false;
+      if (musicInterval) {
+        clearTimeout(musicInterval);
+        musicInterval = null;
+      }
+    }
+
+    function toggleMusic() {
+      if (musicPlaying) {
+        stopMusic();
+      } else {
+        startMusic();
+      }
+    }
+
+    // ==================== Particles ====================
+    let particles = [];
+
+    function spawnParticles(x, y, color, count = 10) {
+      for (let i = 0; i < count; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const speed = 2 + Math.random() * 5;
+        particles.push({
+          x, y,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed - 3,
+          life: 1,
+          decay: 0.02 + Math.random() * 0.04,
+          size: 3 + Math.random() * 5,
+          color,
+        });
+      }
+    }
+
+    function updateParticles() {
+      for (const p of particles) {
+        p.x += p.vx;
+        p.y += p.vy;
+        p.vy += 0.12;
+        p.life -= p.decay;
+      }
+      particles = particles.filter(p => p.life > 0);
+    }
+
+    function drawParticles() {
+      for (const p of particles) {
+        ctx.save();
+        ctx.globalAlpha = p.life;
+        ctx.fillStyle = p.color;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+    }
+
+    // ==================== Drawing ====================
+    function drawBackground() {
+      // Sky gradient
+      const skyGrad = ctx.createLinearGradient(0, 0, 0, H);
+      skyGrad.addColorStop(0, '#87CEEB');
+      skyGrad.addColorStop(0.5, '#90EE90');
+      skyGrad.addColorStop(1, '#228B22');
+      ctx.fillStyle = skyGrad;
+      ctx.fillRect(0, 0, W, H);
+
+      // Sun
+      ctx.fillStyle = '#FFD700';
+      ctx.beginPath();
+      ctx.arc(50, 45, 30, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#FFF8DC';
+      ctx.beginPath();
+      ctx.arc(50, 45, 22, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Clouds
+      drawCloud(320, 30, 0.7);
+      drawCloud(200, 55, 0.5);
+      drawCloud(380, 60, 0.4);
+
+      // Ground
+      ctx.fillStyle = '#8B4513';
+      ctx.fillRect(0, GRID_TOP + GRID_H + 5, W, 60);
+      const groundGrad = ctx.createLinearGradient(0, GRID_TOP + GRID_H + 5, 0, H);
+      groundGrad.addColorStop(0, '#8B4513');
+      groundGrad.addColorStop(0.3, '#6B3410');
+      groundGrad.addColorStop(1, '#3E1F00');
+      ctx.fillStyle = groundGrad;
+      ctx.fillRect(0, GRID_TOP + GRID_H + 5, W, H - (GRID_TOP + GRID_H + 5));
+
+      // Grass strip
+      ctx.fillStyle = '#228B22';
+      ctx.fillRect(0, GRID_TOP + GRID_H - 5, W, 15);
+    }
+
+    function drawCloud(x, y, scale) {
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.scale(scale, scale);
+      ctx.fillStyle = '#fff';
+      ctx.beginPath();
+      ctx.arc(0, 0, 25, 0, Math.PI * 2);
+      ctx.arc(25, -8, 20, 0, Math.PI * 2);
+      ctx.arc(-20, -5, 18, 0, Math.PI * 2);
+      ctx.arc(10, -15, 22, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+
+    function drawHole(x, y) {
+      // Hole shadow
+      ctx.fillStyle = 'rgba(0,0,0,0.3)';
+      ctx.beginPath();
+      ctx.ellipse(x, y + 18, HOLE_RADIUS, HOLE_RADIUS * 0.35, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Hole rim (top)
+      ctx.fillStyle = '#654321';
+      ctx.beginPath();
+      ctx.ellipse(x, y + 2, HOLE_RADIUS + 2, HOLE_RADIUS * 0.4, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Hole interior
+      const holeGrad = ctx.createRadialGradient(x, y - 5, 5, x, y, HOLE_RADIUS);
+      holeGrad.addColorStop(0, '#1a0a00');
+      holeGrad.addColorStop(1, '#3E1F00');
+      ctx.fillStyle = holeGrad;
+      ctx.beginPath();
+      ctx.ellipse(x, y, HOLE_RADIUS, HOLE_RADIUS * 0.35, 0, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    function drawMole(x, y, progress, word, isGolden, isBomb) {
+      // progress: 0=hidden, 1=fully up
+      // Mole rises from below the hole
+      const riseY = y - progress * 55;
+      const scale = 0.6 + progress * 0.4;
+
+      ctx.save();
+      ctx.translate(x, riseY);
+      ctx.scale(scale, scale);
+
+      if (isBomb) {
+        // Bomb
+        ctx.fillStyle = '#333';
+        ctx.beginPath();
+        ctx.arc(0, -5, MOLE_RADIUS - 4, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#555';
+        ctx.beginPath();
+        ctx.arc(-8, -12, 8, 0, Math.PI * 2);
+        ctx.fill();
+        // Fuse spark
+        ctx.strokeStyle = '#ff6600';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(-12, -20);
+        ctx.quadraticCurveTo(-18, -28, -14, -34);
+        ctx.stroke();
+        ctx.fillStyle = '#ff0';
+        ctx.beginPath();
+        ctx.arc(-14, -34, 4, 0, Math.PI * 2);
+        ctx.fill();
+        // Eyes
+        ctx.fillStyle = '#fff';
+        ctx.beginPath(); ctx.arc(-14, -12, 10, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(14, -12, 10, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#f00';
+        ctx.beginPath(); ctx.arc(-14, -10, 5, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(14, -10, 5, 0, Math.PI * 2); ctx.fill();
+        // Angry mouth
+        ctx.strokeStyle = '#f00';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(0, 5, 8, 0, Math.PI);
+        ctx.stroke();
+        ctx.restore();
+        return;
+      }
+
+      if (isGolden) {
+        // Golden mole body
+        const grad = ctx.createRadialGradient(-5, -10, 5, 0, 0, MOLE_RADIUS);
+        grad.addColorStop(0, '#FFE55C');
+        grad.addColorStop(1, '#DAA520');
+        ctx.fillStyle = grad;
+      } else {
+        // Normal mole body
+        const grad = ctx.createRadialGradient(-5, -10, 5, 0, 0, MOLE_RADIUS);
+        grad.addColorStop(0, '#C4956A');
+        grad.addColorStop(1, '#6B3A2A');
+        ctx.fillStyle = grad;
+      }
+
+      // Body
+      ctx.beginPath();
+      ctx.arc(0, -2, MOLE_RADIUS, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Belly
+      ctx.fillStyle = isGolden ? 'rgba(255,255,200,0.6)' : 'rgba(210,180,140,0.5)';
+      ctx.beginPath();
+      ctx.ellipse(0, 6, MOLE_RADIUS * 0.5, MOLE_RADIUS * 0.4, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Ears
+      ctx.fillStyle = isGolden ? '#DAA520' : '#6B3A2A';
+      ctx.beginPath(); ctx.arc(-22, -22, 10, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.arc(22, -22, 10, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = isGolden ? '#FFE4B5' : '#D2B48C';
+      ctx.beginPath(); ctx.arc(-22, -22, 6, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.arc(22, -22, 6, 0, Math.PI * 2); ctx.fill();
+
+      // Eyes
+      ctx.fillStyle = '#fff';
+      ctx.beginPath(); ctx.arc(-12, -12, 12, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.arc(12, -12, 12, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#1a1a1a';
+      ctx.beginPath(); ctx.arc(-10, -10, 6, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.arc(14, -10, 6, 0, Math.PI * 2); ctx.fill();
+      // Eye shine
+      ctx.fillStyle = '#fff';
+      ctx.beginPath(); ctx.arc(-13, -13, 3, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.arc(11, -13, 3, 0, Math.PI * 2); ctx.fill();
+
+      // Nose
+      ctx.fillStyle = '#FF6B6B';
+      ctx.beginPath(); ctx.ellipse(0, -1, 8, 6, 0, 0, Math.PI * 2); ctx.fill();
+
+      // Mouth
+      ctx.strokeStyle = '#4A2810';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.arc(0, 5, 10, 0.1, Math.PI - 0.1);
+      ctx.stroke();
+
+      // Whiskers
+      ctx.strokeStyle = '#4A2810';
+      ctx.lineWidth = 1;
+      [-1, 1].forEach(side => {
+        ctx.beginPath();
+        ctx.moveTo(side * 15, -2);
+        ctx.lineTo(side * 30, -6);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(side * 15, 2);
+        ctx.lineTo(side * 30, 2);
+        ctx.stroke();
+      });
+
+      // Word tag above mole
+      if (progress > 0.5 && word) {
+        ctx.fillStyle = 'rgba(0,0,0,0.7)';
+        const textW = ctx.measureText(word).width + 16;
+        ctx.beginPath();
+        ctx.roundRect(-textW/2, -52, textW, 20, 8);
+        ctx.fill();
+        ctx.fillStyle = isGolden ? '#FFD700' : '#fff';
+        ctx.font = 'bold 12px "Courier New", monospace';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(word, 0, -42);
+      }
+
+      ctx.restore();
+    }
+
+    function drawDizzyMole(x, y) {
+      // Draw a dazed mole (after being hit, briefly shown)
+      ctx.save();
+      ctx.translate(x, y - 40);
+
+      // Body
+      ctx.fillStyle = '#C4956A';
+      ctx.beginPath();
+      ctx.arc(0, -2, MOLE_RADIUS, 0, Math.PI * 2);
+      ctx.fill();
+
+      // X eyes
+      ctx.strokeStyle = '#333';
+      ctx.lineWidth = 3;
+      [-12, 12].forEach(sx => {
+        ctx.beginPath();
+        ctx.moveTo(sx - 5, -17);
+        ctx.lineTo(sx + 5, -7);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(sx + 5, -17);
+        ctx.lineTo(sx - 5, -7);
+        ctx.stroke();
+      });
+
+      // Dizzy mouth
+      ctx.beginPath();
+      ctx.arc(0, 8, 7, 0, Math.PI);
+      ctx.stroke();
+
+      // Stars around head
+      ctx.fillStyle = '#FFD700';
+      const stars = [[-30, -25], [28, -20], [-15, -35], [20, -32]];
+      stars.forEach(([sx, sy]) => {
+        drawStar(sx, sy, 4, 6, 3);
+      });
+
+      ctx.restore();
+    }
+
+    function drawStar(cx, cy, spikes, outerR, innerR) {
+      ctx.beginPath();
+      for (let i = 0; i < spikes * 2; i++) {
+        const r = i % 2 === 0 ? outerR : innerR;
+        const angle = (i * Math.PI) / spikes - Math.PI / 2;
+        const x = cx + Math.cos(angle) * r;
+        const y = cy + Math.sin(angle) * r;
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.closePath();
+      ctx.fill();
+    }
+
+    let hoveredMole = null;
+    let hoverPulse = 0;
+    let lastHoverTime = 0;
+
+    function drawHammerCursor(x, y, clicking, hovering) {
+      if (!gameRunning || gameOver) return;
+
+      // Pulse animation for hover feedback
+      if (hovering) {
+        const now = Date.now();
+        hoverPulse = Math.sin(now / 120) * 0.3 + 0.7; // 0.4 ~ 1.0
+      } else {
+        hoverPulse = 1.0;
+      }
+
+      ctx.save();
+      ctx.translate(x, y);
+
+      // Scale up when hovering over a target
+      const scale = hovering ? 1.15 : 1.0;
+      ctx.scale(scale, scale);
+
+      // Default right-hand holding angle (~40°), tilt further when clicking
+      const baseAngle = -40;
+      const clickAngle = clicking ? -25 : 0;
+      ctx.rotate(((baseAngle + clickAngle) * Math.PI) / 180);
+
+      // Glow aura when hovering
+      if (hovering) {
+        ctx.save();
+        ctx.rotate(-((baseAngle + clickAngle) * Math.PI) / 180);
+        const glowGrad = ctx.createRadialGradient(0, -4, 5, 0, -4, 45);
+        glowGrad.addColorStop(0, 'rgba(255, 215, 0, 0.5)');
+        glowGrad.addColorStop(0.5, 'rgba(255, 165, 0, 0.2)');
+        glowGrad.addColorStop(1, 'rgba(255, 215, 0, 0)');
+        ctx.fillStyle = glowGrad;
+        ctx.beginPath();
+        ctx.arc(0, -4, 45, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+        ctx.rotate(((baseAngle + clickAngle) * Math.PI) / 180);
+      }
+
+      // Handle (vertical, wood color)
+      const handleW = 10;
+      const handleH = 34;
+      const handleX = -handleW / 2;
+      const handleY = 4;
+      ctx.fillStyle = hovering ? '#E0B070' : '#C4956A';
+      ctx.fillRect(handleX, handleY, handleW, handleH);
+      // Handle edge highlight
+      ctx.fillStyle = hovering ? '#F0C080' : '#D4A57A';
+      ctx.fillRect(handleX + 1, handleY, 3, handleH);
+      // Handle grip lines
+      ctx.strokeStyle = '#8B6914';
+      ctx.lineWidth = 1;
+      for (let gy = handleY + handleH - 12; gy < handleY + handleH - 2; gy += 4) {
+        ctx.beginPath();
+        ctx.moveTo(handleX + 1, gy);
+        ctx.lineTo(handleX + handleW - 1, gy);
+        ctx.stroke();
+      }
+
+      // Hammer head (horizontal, metal/gray)
+      const headW = 42;
+      const headH = 16;
+      const headX = -headW / 2;
+      const headY = -8;
+
+      // Head body - golden tint when hovering
+      if (hovering) {
+        const headGradHover = ctx.createLinearGradient(0, headY, 0, headY + headH);
+        headGradHover.addColorStop(0, '#C0C080');
+        headGradHover.addColorStop(0.3, '#E8E0B0');
+        headGradHover.addColorStop(0.5, '#FFF8D0');
+        headGradHover.addColorStop(0.7, '#D0C890');
+        headGradHover.addColorStop(1, '#908050');
+        ctx.fillStyle = headGradHover;
+      } else {
+        const headGrad = ctx.createLinearGradient(0, headY, 0, headY + headH);
+        headGrad.addColorStop(0, '#A0A0A0');
+        headGrad.addColorStop(0.3, '#D0D0D0');
+        headGrad.addColorStop(0.5, '#E8E8E8');
+        headGrad.addColorStop(0.7, '#C0C0C0');
+        headGrad.addColorStop(1, '#707070');
+        ctx.fillStyle = headGrad;
+      }
+
+      // Rounded rectangle for head
+      const hr = 4;
+      ctx.beginPath();
+      ctx.moveTo(headX + hr, headY);
+      ctx.lineTo(headX + headW - hr, headY);
+      ctx.quadraticCurveTo(headX + headW, headY, headX + headW, headY + hr);
+      ctx.lineTo(headX + headW, headY + headH - hr);
+      ctx.quadraticCurveTo(headX + headW, headY + headH, headX + headW - hr, headY + headH);
+      ctx.lineTo(headX + hr, headY + headH);
+      ctx.quadraticCurveTo(headX, headY + headH, headX, headY + headH - hr);
+      ctx.lineTo(headX, headY + hr);
+      ctx.quadraticCurveTo(headX, headY, headX + hr, headY);
+      ctx.closePath();
+      ctx.fill();
+
+      // Head top highlight
+      ctx.fillStyle = hovering ? 'rgba(255,255,220,0.5)' : 'rgba(255,255,255,0.3)';
+      ctx.fillRect(headX + 4, headY + 1, headW - 8, 3);
+
+      // Metal ring (where handle meets head)
+      ctx.fillStyle = hovering ? '#AA9' : '#888';
+      ctx.fillRect(-handleW/2 - 2, 0, handleW + 4, 6);
+      ctx.fillStyle = hovering ? '#BBA' : '#999';
+      ctx.fillRect(-handleW/2 - 1, 1, handleW + 2, 2);
+
+      ctx.restore();
+    }
+
+    // ==================== Game Logic ====================
+    function spawnMole() {
+      const level = LEVELS[currentLevel];
+      if (activeMoles.length >= level.maxMoles) return;
+
+      // Pick a random empty hole
+      const occupied = new Set(activeMoles.map(m => m.holeIndex));
+      const available = holes.map((_, i) => i).filter(i => !occupied.has(i));
+      if (available.length === 0) return;
+
+      const holeIndex = available[Math.floor(Math.random() * available.length)];
+
+      // 10% golden, 8% bomb
+      const rand = Math.random();
+      const isGolden = rand < 0.1;
+      const isBomb = rand > 0.9;
+
+      const word = isBomb ? '💣' : WORD_POOL[Math.floor(Math.random() * WORD_POOL.length)];
+
+      activeMoles.push({
+        holeIndex,
+        word,
+        state: 'rising',
+        progress: 0,
+        isGolden,
+        isBomb,
+        stayTime: 0,
+        maxStay: isGolden ? 2000 : (isBomb ? 1000 : 1500 + Math.random() * 800),
+      });
+
+      // Speak the word when mole appears
+      if (!isBomb) {
+        speakWord(word);
+      }
+    }
+
+    const HIT_RADIUS = HOLE_RADIUS + 25; // generous hit area for touchpad
+
+    function getClickHole(mx, my) {
+      for (let i = 0; i < holes.length; i++) {
+        const h = holes[i];
+        const dx = mx - h.x;
+        const dy = my - h.y;
+        if (dx * dx + dy * dy < HIT_RADIUS * HIT_RADIUS) {
+          return i;
+        }
+      }
+      return -1;
+    }
+
+    // Check if mouse is hovering over a whackable mole
+    function getHoveredMole(mx, my) {
+      const holeIdx = getClickHole(mx, my);
+      if (holeIdx < 0) return null;
+      const mole = activeMoles.find(m => m.holeIndex === holeIdx && m.state === 'up');
+      return mole || null;
+    }
+
+    function handleClick(mx, my) {
+      if (!gameRunning || gameOver) return;
+
+      const holeIdx = getClickHole(mx, my);
+      if (holeIdx < 0) return;
+
+      const mole = activeMoles.find(m => m.holeIndex === holeIdx && m.state === 'up');
+      if (!mole) {
+        // Clicked empty hole
+        sfxMiss();
+        misses++;
+        combo = 0;
+        document.getElementById('combo').textContent = '0';
+        document.getElementById('sideCombo').textContent = '0';
+        return;
+      }
+
+      if (mole.isBomb) {
+        // Hit a bomb!
+        sfxMiss();
+        score = Math.max(0, score - 30);
+        combo = 0;
+        document.getElementById('combo').textContent = '0';
+        document.getElementById('sideCombo').textContent = '0';
+        document.getElementById('score').textContent = score;
+        document.getElementById('sideScore').textContent = score;
+        spawnParticles(holes[holeIdx].x, holes[holeIdx].y - 40, '#ff0000', 15);
+        mole.state = 'falling';
+        mole.progress = 1;
+        return;
+      }
+
+      // Hit!
+      combo++;
+      maxCombo = Math.max(maxCombo, combo);
+      const points = mole.isGolden ? (10 + combo * 5) : (5 + combo * 2);
+      score += points;
+      hits++;
+      hitWords.add(mole.word);
+
+      document.getElementById('score').textContent = score;
+      document.getElementById('combo').textContent = combo;
+      document.getElementById('sideScore').textContent = score;
+      document.getElementById('sideCombo').textContent = combo;
+
+      // Sound effects
+      mole.isGolden ? sfxGoldenHit() : sfxHit();
+
+      // Speak the word
+      speakWord(mole.word);
+
+      // Particles
+      const color = mole.isGolden ? '#FFD700' : '#FF6B6B';
+      spawnParticles(holes[holeIdx].x, holes[holeIdx].y - 40, color, mole.isGolden ? 20 : 10);
+
+      // Show dizzy mole briefly then fall
+      mole.state = 'falling';
+      mole.progress = 1;
+    }
+
+    function updateMoles(dt) {
+      const level = LEVELS[currentLevel];
+      for (const mole of activeMoles) {
+        if (mole.state === 'rising') {
+          mole.progress += dt / 200; // 200ms rise
+          if (mole.progress >= 1) {
+            mole.progress = 1;
+            mole.state = 'up';
+            mole.stayTime = 0;
+          }
+        } else if (mole.state === 'up') {
+          mole.stayTime += dt;
+          if (mole.stayTime >= mole.maxStay) {
+            mole.state = 'falling';
+          }
+        } else if (mole.state === 'falling') {
+          mole.progress -= dt / 150; // 150ms fall
+          if (mole.progress <= 0) {
+            mole.progress = 0;
+            mole.done = true;
+          }
+        }
+      }
+      activeMoles = activeMoles.filter(m => !m.done);
+    }
+
+    // ==================== Render ====================
+    let mouseX = -50, mouseY = -50;
+    let mouseClicking = false;
+
+    canvas.addEventListener('mousemove', (e) => {
+      const rect = canvas.getBoundingClientRect();
+      mouseX = (e.clientX - rect.left) * (W / rect.width);
+      mouseY = (e.clientY - rect.top) * (H / rect.height);
+    });
+
+    canvas.addEventListener('click', (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const mx = (e.clientX - rect.left) * (W / rect.width);
+      const my = (e.clientY - rect.top) * (H / rect.height);
+      mouseClicking = true;
+      setTimeout(() => { mouseClicking = false; }, 100);
+      handleClick(mx, my);
+    });
+
+    // Touch support
+    canvas.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      const rect = canvas.getBoundingClientRect();
+      const touch = e.touches[0];
+      mouseX = (touch.clientX - rect.left) * (W / rect.width);
+      mouseY = (touch.clientY - rect.top) * (H / rect.height);
+      mouseClicking = true;
+      setTimeout(() => { mouseClicking = false; }, 100);
+      handleClick(mouseX, mouseY);
+    });
+
+    canvas.addEventListener('touchmove', (e) => {
+      e.preventDefault();
+    });
+
+    function render(timestamp) {
+      if (!gameRunning && !gameOver) {
+        drawStaticScene();
+        animFrameId = requestAnimationFrame(render);
+        return;
+      }
+
+      const dt = animFrameId ? 16 : 0; // approximate 60fps
+
+      if (gameRunning) {
+        updateMoles(dt);
+        updateParticles();
+      }
+
+      // Draw everything
+      ctx.clearRect(0, 0, W, H);
+      drawBackground();
+
+      // Draw holes
+      holes.forEach(h => drawHole(h.x, h.y));
+
+      // Draw moles (behind holes if rising/falling)
+      for (const mole of activeMoles) {
+        const h = holes[mole.holeIndex];
+        if (mole.state === 'rising' || mole.state === 'falling') {
+          drawMole(h.x, h.y, mole.progress, mole.word, mole.isGolden, mole.isBomb);
+        }
+      }
+
+      // Hole front rims (cover lower part of moles)
+      holes.forEach(h => {
+        ctx.fillStyle = '#8B7355';
+        ctx.beginPath();
+        ctx.ellipse(h.x, h.y + 2, HOLE_RADIUS + 1, HOLE_RADIUS * 0.35, 0, 0, Math.PI);
+        ctx.fill();
+      });
+
+      // Draw moles in "up" state (in front of rims)
+      for (const mole of activeMoles) {
+        const h = holes[mole.holeIndex];
+        if (mole.state === 'up') {
+          drawMole(h.x, h.y, mole.progress, mole.word, mole.isGolden, mole.isBomb);
+        }
+      }
+
+      // Particles
+      drawParticles();
+
+      // Check hover state
+      if (gameRunning) {
+        hoveredMole = getHoveredMole(mouseX, mouseY);
+
+        // Highlight ring at hovered mole's hole
+        if (hoveredMole) {
+          const h = holes[hoveredMole.holeIndex];
+          const pulse = Math.sin(Date.now() / 100) * 0.3 + 0.7;
+          ctx.save();
+          ctx.fillStyle = `rgba(255, 215, 0, ${0.15 * pulse})`;
+          ctx.beginPath();
+          ctx.arc(h.x, h.y - 25, HIT_RADIUS - 4, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.strokeStyle = `rgba(255, 215, 0, ${0.5 * pulse})`;
+          ctx.lineWidth = 3;
+          ctx.setLineDash([4, 4]);
+          ctx.lineDashOffset = Date.now() / 30;
+          ctx.stroke();
+          ctx.setLineDash([]);
+          ctx.restore();
+        }
+
+        drawHammerCursor(mouseX, mouseY, mouseClicking, !!hoveredMole);
+      }
+
+      // Score popup animation handling (via particles)
+
+      animFrameId = requestAnimationFrame(render);
+    }
+
+    function drawStaticScene() {
+      ctx.clearRect(0, 0, W, H);
+      drawBackground();
+      holes.forEach(h => drawHole(h.x, h.y));
+
+      // Draw idle moles peeking slightly
+      holes.forEach((h, i) => {
+        const peek = Math.sin(Date.now() / 3000 + i) * 0.08 + 0.08;
+        if (peek > 0.05) {
+          drawMole(h.x, h.y, peek, null, false, false);
+        }
+      });
+
+      // Start prompt
+      ctx.fillStyle = 'rgba(0,0,0,0.5)';
+      ctx.beginPath();
+      ctx.roundRect(W/2 - 130, H/2 + 20, 260, 50, 25);
+      ctx.fill();
+      ctx.fillStyle = '#fff';
+      ctx.font = 'bold 18px "Courier New", monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText('👆 点击"开始游戏"按钮', W/2, H/2 + 48);
+    }
+
+    // ==================== Timer & Spawner ====================
+    function startSpawner() {
+      const level = LEVELS[currentLevel];
+      clearInterval(spawnInterval);
+      spawnMole(); // spawn first mole immediately
+      spawnInterval = setInterval(() => {
+        spawnMole();
+      }, level.speed);
+    }
+
+    function updateTimer() {
+      timeLeft--;
+      document.getElementById('timer').textContent = timeLeft + 's';
+
+      // Flash timer when low
+      if (timeLeft <= 5) {
+        document.getElementById('timer').style.color = '#ff4444';
+      }
+
+      if (timeLeft <= 0) {
+        endGame();
+      }
+    }
+
+    function endGame() {
+      gameRunning = false;
+      gameOver = true;
+      clearInterval(timerInterval);
+      clearInterval(spawnInterval);
+      sfxWin();
+
+      stopMusic();
+
+      // Update best score
+      if (score > bestScore[currentLevel]) {
+        bestScore[currentLevel] = score;
+        document.getElementById('bestScore').textContent = score;
+      }
+
+      // Show results
+      const stars = score >= 150 ? 3 : score >= 80 ? 2 : 1;
+      const emojis = ['', '😊', '🌟', '🏆'];
+      const titles = ['', '继续加油！', '很棒！', '太厉害了！'];
+
+      document.getElementById('winEmoji').textContent = emojis[stars];
+      document.getElementById('winTitle').textContent = titles[stars];
+      document.getElementById('winStars').textContent = '⭐'.repeat(stars) + '☆'.repeat(3 - stars);
+      document.getElementById('winScore').textContent = score;
+      document.getElementById('winCombo').textContent = maxCombo;
+      document.getElementById('winHits').textContent = hits;
+      document.getElementById('winMisses').textContent = misses;
+
+      const wordsDiv = document.getElementById('winWords');
+      wordsDiv.innerHTML = '';
+      [...hitWords].forEach(w => {
+        const span = document.createElement('span');
+        span.className = 'hit-word';
+        span.textContent = w;
+        wordsDiv.appendChild(span);
+      });
+
+      document.getElementById('overlay').classList.add('show');
+      document.getElementById('btnStart').style.display = 'block';
+      document.getElementById('btnSideRestart').style.display = 'none';
+    }
+
+    // ==================== Start / Restart ====================
+    function startGame() {
+      const level = LEVELS[currentLevel];
+      score = 0;
+      combo = 0;
+      maxCombo = 0;
+      hits = 0;
+      misses = 0;
+      timeLeft = level.time;
+      hitWords = new Set();
+      activeMoles = [];
+      particles = [];
+      gameRunning = true;
+      gameOver = false;
+
+      document.getElementById('score').textContent = '0';
+      document.getElementById('combo').textContent = '0';
+      document.getElementById('sideScore').textContent = '0';
+      document.getElementById('sideCombo').textContent = '0';
+      document.getElementById('timer').textContent = timeLeft + 's';
+      document.getElementById('timer').style.color = '';
+      document.getElementById('overlay').classList.remove('show');
+      document.getElementById('btnStart').style.display = 'none';
+      document.getElementById('btnSideRestart').style.display = 'block';
+
+      clearInterval(timerInterval);
+      timerInterval = setInterval(updateTimer, 1000);
+
+      startSpawner();
+      startMusic();
+    }
+
+    // ==================== Event Handlers ====================
+    document.getElementById('btnStart').addEventListener('click', startGame);
+    document.getElementById('btnPlayAgain').addEventListener('click', startGame);
+    document.getElementById('btnSideRestart').addEventListener('click', startGame);
+
+    document.querySelectorAll('.level-select button').forEach(btn => {
+      btn.addEventListener('click', () => {
+        currentLevel = btn.dataset.level;
+        document.querySelectorAll('.level-select button').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        timeLeft = LEVELS[currentLevel].time;
+        document.getElementById('timer').textContent = timeLeft + 's';
+        document.getElementById('bestScore').textContent = bestScore[currentLevel] || '-';
+        // Reset if game over
+        if (gameOver) {
+          gameRunning = false;
+          gameOver = false;
+          score = 0;
+          activeMoles = [];
+          particles = [];
+          document.getElementById('score').textContent = '0';
+          document.getElementById('combo').textContent = '0';
+          document.getElementById('sideScore').textContent = '0';
+          document.getElementById('sideCombo').textContent = '0';
+          document.getElementById('timer').style.color = '';
+          document.getElementById('btnStart').style.display = 'block';
+          document.getElementById('btnSideRestart').style.display = 'none';
+        }
+      });
+    });
+
+    // Speech toggle
+    document.getElementById('speechToggle').addEventListener('click', function() {
+      speechEnabled = !speechEnabled;
+      this.classList.toggle('on', speechEnabled);
+      this.textContent = speechEnabled ? '🔊' : '🔇';
+    });
+
+    // Music toggle
+    let musicEnabled = false; // off by default, user can enable
+    const musicToggle = document.getElementById('musicToggle');
+    musicToggle.addEventListener('click', function() {
+      musicEnabled = !musicEnabled;
+      this.classList.toggle('on', musicEnabled);
+      this.textContent = musicEnabled ? '🎵' : '🎵';
+      if (musicEnabled && gameRunning) {
+        startMusic();
+      } else if (!musicEnabled) {
+        stopMusic();
+      }
+    });
+
+    // Keyboard shortcuts
+    document.addEventListener('keydown', (e) => {
+      if (e.key === ' ' || e.key === 'Spacebar') {
+        e.preventDefault();
+        if (!gameRunning || gameOver) {
+          startGame();
+        }
+      }
+    });
+
+    // ==================== Init ====================
+    document.getElementById('timer').textContent = timeLeft + 's';
+    animFrameId = requestAnimationFrame(render);
+
+    // Handle window resize
+    function resizeCanvas() {
+      // Keep the internal resolution, just scale display
+    }
+    window.addEventListener('resize', resizeCanvas);
+  </script>
+</body>
+</html>
