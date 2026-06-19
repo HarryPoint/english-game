@@ -1,0 +1,1506 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>超级玛丽</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      background: linear-gradient(180deg, #5c94fc 0%, #1a1a2e 100%);
+      font-family: 'Courier New', monospace;
+      overflow: hidden;
+    }
+
+    h1 {
+      color: #fff;
+      font-size: 2rem;
+      margin-bottom: 5px;
+      text-shadow: 2px 2px 0 #e52521, 4px 4px 0 #000;
+      letter-spacing: 4px;
+    }
+
+    .info {
+      color: #ffd700;
+      margin-bottom: 10px;
+      font-size: 0.9rem;
+    }
+
+    .info span {
+      margin: 0 15px;
+      background: rgba(0,0,0,0.4);
+      padding: 4px 12px;
+      border-radius: 12px;
+    }
+
+    #gameCanvas {
+      border: 4px solid #e52521;
+      border-radius: 8px;
+      image-rendering: pixelated;
+      box-shadow: 0 0 30px rgba(229, 37, 33, 0.4);
+    }
+
+    #overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.6);
+      z-index: 100;
+      justify-content: center;
+      align-items: center;
+    }
+
+    #overlay.show {
+      display: flex;
+    }
+
+    #msgBox {
+      background: #1a1a2e;
+      border: 4px solid #ffd700;
+      border-radius: 16px;
+      padding: 30px 50px;
+      text-align: center;
+    }
+
+    #msgBox h2 {
+      font-size: 2rem;
+      margin-bottom: 10px;
+    }
+
+    #msgBox .win { color: #00ff88; }
+    #msgBox .lose { color: #e52521; }
+
+    #msgBox p {
+      color: #ccc;
+      margin-bottom: 15px;
+    }
+
+    #msgBox button {
+      background: #e52521;
+      color: #fff;
+      border: none;
+      padding: 12px 30px;
+      font-size: 1.1rem;
+      border-radius: 8px;
+      cursor: pointer;
+      font-family: inherit;
+      transition: transform 0.1s;
+    }
+
+    #msgBox button:hover {
+      transform: scale(1.05);
+      background: #ff4d4d;
+    }
+
+    #msgBox button:active {
+      transform: scale(0.95);
+    }
+
+    .controls {
+      color: #aaa;
+      font-size: 0.8rem;
+      margin-top: 10px;
+    }
+
+    .controls kbd {
+      background: #333;
+      padding: 2px 8px;
+      border-radius: 4px;
+      border: 1px solid #555;
+      color: #ffd700;
+    }
+  </style>
+</head>
+<body>
+  <h1>🍄 超级玛丽</h1>
+  <div class="info">
+    <span>⭐ <span id="score">0</span></span>
+    <span>🪙 <span id="coins">0</span></span>
+    <span>❤️ <span id="lives">∞</span></span>
+    <span>🏁 Level <span id="level">1</span></span>
+  </div>
+  <canvas id="gameCanvas" width="800" height="500"></canvas>
+  <div class="controls">
+    <kbd>← →</kbd> 移动 &nbsp; <kbd>空格</kbd> 跳跃 &nbsp; <kbd>X</kbd> 火球 &nbsp; <kbd>R</kbd> 重来
+  </div>
+  <div id="overlay">
+    <div id="msgBox">
+      <h2 id="msgTitle"></h2>
+      <p id="msgText"></p>
+      <button id="msgBtn" onclick="restartGame()">重新开始</button>
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+
+    const W = canvas.width;
+    const H = canvas.height;
+
+    // ── 游戏状态 ──────────────────────────────
+    const GRAVITY = 0.45;
+    const FRICTION = 0.78;
+    const TILE = 32;
+    const COYOTE_TIME = 8;      // 走出平台后几帧内仍可跳跃
+    const JUMP_BUFFER = 8;      // 落地前几帧按跳可缓冲
+
+    let score = 0;
+    let coins = 0;
+    let level = 1;
+    let gameWin = false;
+    let cameraX = 0;
+
+    // ── 玩家 ──────────────────────────────────
+    const player = {
+      x: 100,
+      y: 300,
+      w: 28,
+      h: 36,
+      vx: 0,
+      vy: 0,
+      onGround: false,
+      coyoteTimer: 0,   // 土狼时间计数器
+      jumpBufferTimer: 0, // 跳跃缓冲计数器
+      facing: 1,       // 1=right, -1=left
+      frame: 0,
+      frameTimer: 0,
+      invincible: 0,   // 无敌时间
+      animState: 'idle', // idle, run, jump
+      powerUp: 'none',   // 'none' | 'mushroom' | 'fire' | 'star'
+      powerTimer: 0,     // 限时道具倒计时
+    };
+
+    // ── 道具 & 火球 ────────────────────────────
+    let spawnedItems = [];   // 从砖块弹出的道具
+    let fireballs = [];      // 火球
+
+    // ── 音效系统 ──────────────────────────────
+    let audioCtx = null;
+
+    function initAudio() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      return audioCtx;
+    }
+
+    // 8-bit 风格音效合成器
+    function playSound(type) {
+      let ctx;
+      try { ctx = initAudio(); } catch (e) { return; }
+      const t = ctx.currentTime;
+      const osc = (freq, type = 'square') => {
+        const o = ctx.createOscillator();
+        o.type = type;
+        o.frequency.value = freq;
+        return o;
+      };
+      const gain = (vol, start, end, at = t) => {
+        const g = ctx.createGain();
+        g.gain.setValueAtTime(vol, at);
+        g.gain.exponentialRampToValueAtTime(end || 0.001, at + start);
+        return g;
+      };
+
+      switch (type) {
+        case 'jump': {
+          // 清脆上行跳跃音：高频三角波 + 方波泛音
+          const o = osc(700, 'triangle');
+          const g = gain(0.10, 0.07);
+          o.frequency.exponentialRampToValueAtTime(1800, t + 0.06);
+          o.connect(g).connect(ctx.destination);
+          o.start(t); o.stop(t + 0.07);
+          const o2 = osc(700, 'square');
+          const g2 = gain(0.04, 0.06);
+          o2.frequency.exponentialRampToValueAtTime(1800, t + 0.06);
+          o2.connect(g2).connect(ctx.destination);
+          o2.start(t); o2.stop(t + 0.07);
+          break;
+        }
+        case 'coin': {
+          // 经典金币音：B5 → E6 两声
+          const g = gain(0.12, 0.25);
+          const o1 = osc(988, 'square'); // B5
+          o1.connect(g).connect(ctx.destination);
+          o1.start(t); o1.stop(t + 0.08);
+          const o2 = osc(1319, 'square'); // E6
+          const g2 = gain(0.12, 0.3);
+          o2.connect(g2).connect(ctx.destination);
+          o2.start(t + 0.08); o2.stop(t + 0.25);
+          break;
+        }
+        case 'block': {
+          // 顶砖块：短促低音
+          const o = osc(200, 'triangle');
+          const g = gain(0.18, 0.1);
+          o.connect(g).connect(ctx.destination);
+          o.start(t); o.stop(t + 0.1);
+          // 加一点高音
+          const o2 = osc(500, 'square');
+          const g2 = gain(0.06, 0.08);
+          o2.connect(g2).connect(ctx.destination);
+          o2.start(t); o2.stop(t + 0.08);
+          break;
+        }
+        case 'stomp': {
+          // 踩敌人：下行音
+          const o = osc(600, 'square');
+          const g = gain(0.15, 0.15);
+          o.frequency.exponentialRampToValueAtTime(150, t + 0.12);
+          o.connect(g).connect(ctx.destination);
+          o.start(t); o.stop(t + 0.15);
+          break;
+        }
+        case 'hurt': {
+          // 受伤：下行滑音
+          const o = osc(500, 'square');
+          const g = gain(0.18, 0.5);
+          o.frequency.exponentialRampToValueAtTime(100, t + 0.4);
+          o.connect(g).connect(ctx.destination);
+          o.start(t); o.stop(t + 0.5);
+          break;
+        }
+        case 'die': {
+          // 死亡：四个下行音符
+          [392, 330, 262, 196].forEach((freq, i) => {
+            const o = osc(freq, 'square');
+            const g = gain(0.13, 0.25);
+            o.connect(g).connect(ctx.destination);
+            o.start(t + i * 0.15); o.stop(t + i * 0.15 + 0.2);
+          });
+          break;
+        }
+        case 'win': {
+          // 过关：上行琶音 C-E-G-C
+          [523, 659, 784, 1047].forEach((freq, i) => {
+            const o = osc(freq, 'square');
+            const g = gain(0.12, 0.4);
+            o.connect(g).connect(ctx.destination);
+            o.start(t + i * 0.12); o.stop(t + i * 0.12 + 0.35);
+          });
+          break;
+        }
+        case 'powerup': {
+          // 吃道具：快速上行琶音
+          [523, 659, 784, 1047].forEach((freq, i) => {
+            const o = osc(freq, 'square');
+            const g = gain(0.10, 0.12);
+            o.connect(g).connect(ctx.destination);
+            o.start(t + i * 0.06); o.stop(t + i * 0.06 + 0.15);
+          });
+          break;
+        }
+        case 'gameover': {
+          // 游戏结束：悲伤下行 G-E-C
+          [784, 659, 523].forEach((freq, i) => {
+            const o = osc(freq, 'triangle');
+            const g = gain(0.14, 0.6);
+            o.connect(g).connect(ctx.destination);
+            o.start(t + i * 0.25); o.stop(t + i * 0.25 + 0.5);
+          });
+          break;
+        }
+      }
+    }
+
+    // ── 背景音乐 ──────────────────────────────
+    let bgmPlaying = false;
+    let bgmTimer = null;
+    let bgmGainNode = null;
+
+    // 欢快主题旋律 [频率, 时长(秒)]
+    const BGM_MELODY = [
+      // 主旋律 C大调，跳跃欢快节奏
+      [523, 0.12], [659, 0.12], [784, 0.12], [1047, 0.18],  // C5 E5 G5 C6
+      [784, 0.08], [1047, 0.2],                              // G5 C6
+      [880, 0.12], [1047, 0.12], [880, 0.12], [784, 0.12],   // A5 C6 A5 G5
+      [659, 0.12], [784, 0.12], [659, 0.18],                 // E5 G5 E5
+      [523, 0.12], [659, 0.12], [784, 0.12], [880, 0.18],    // C5 E5 G5 A5
+      [784, 0.08], [880, 0.2],                                // G5 A5
+      [1047, 0.12], [880, 0.12], [784, 0.12], [659, 0.12],   // C6 A5 G5 E5
+      [523, 0.12], [659, 0.12], [784, 0.18],                 // C5 E5 G5
+      // 第二段：更跳跃
+      [523, 0.08], [587, 0.08], [659, 0.08], [784, 0.12],    // C5 D5 E5 G5
+      [880, 0.08], [784, 0.08], [880, 0.08], [1047, 0.12],   // A5 G5 A5 C6
+      [1175, 0.18], [1047, 0.12],                             // D6 C6
+      [880, 0.12], [784, 0.12], [659, 0.12], [523, 0.12],    // A5 G5 E5 C5
+      [784, 0.12], [659, 0.12], [523, 0.2],                  // G5 E5 C5
+      // 尾声小跳跃
+      [784, 0.08], [880, 0.08], [784, 0.08], [659, 0.08],    // G5 A5 G5 E5
+      [523, 0.15], [659, 0.10], [784, 0.25],                 // C5 E5 G5
+    ];
+
+    const BPM = 145;
+    const STEP = 60 / BPM / 2; // 八分音符时长
+
+    function startBGM() {
+      if (bgmPlaying) return;
+      let ctx;
+      try { ctx = initAudio(); } catch (e) { return; }
+      bgmPlaying = true;
+
+      bgmGainNode = ctx.createGain();
+      bgmGainNode.gain.value = 0.20;
+      bgmGainNode.connect(ctx.destination);
+
+      let noteIndex = 0;
+      function scheduleNext() {
+        if (!bgmPlaying) return;
+        const t = ctx.currentTime + 0.05;
+        const [freq, dur] = BGM_MELODY[noteIndex];
+
+        // 主旋律（方波）
+        const o1 = ctx.createOscillator();
+        o1.type = 'square';
+        o1.frequency.value = freq;
+        const g1 = ctx.createGain();
+        g1.gain.setValueAtTime(0.18, t);
+        g1.gain.exponentialRampToValueAtTime(0.001, t + dur * 0.9);
+        o1.connect(g1).connect(bgmGainNode);
+        o1.start(t); o1.stop(t + dur + 0.02);
+
+        // 泛音增强（高八度三角波）
+        const o2 = ctx.createOscillator();
+        o2.type = 'triangle';
+        o2.frequency.value = freq * 2;
+        const g2 = ctx.createGain();
+        g2.gain.setValueAtTime(0.08, t);
+        g2.gain.exponentialRampToValueAtTime(0.001, t + dur * 0.7);
+        o2.connect(g2).connect(bgmGainNode);
+        o2.start(t); o2.stop(t + dur + 0.02);
+
+        noteIndex = (noteIndex + 1) % BGM_MELODY.length;
+        bgmTimer = setTimeout(scheduleNext, dur * 1000 * 0.85);
+      }
+      scheduleNext();
+    }
+
+    function stopBGM() {
+      bgmPlaying = false;
+      if (bgmTimer) { clearTimeout(bgmTimer); bgmTimer = null; }
+    }
+
+    function setBGMVolume(vol) {
+      if (bgmGainNode) bgmGainNode.gain.value = vol;
+    }
+
+    // ── 输入 ──────────────────────────────────
+    const keys = {};
+    window.addEventListener('keydown', e => {
+      initAudio(); // 首次按键唤醒 AudioContext
+      keys[e.code] = true;
+      if (e.code === 'Space') e.preventDefault();
+      if (e.code === 'KeyR') restartGame();
+    });
+    window.addEventListener('keyup', e => { keys[e.code] = false; });
+
+    // ── 关卡数据 ──────────────────────────────
+    // 图例:  . = 空,  G = 地面,  B = 砖块,  ? = 问号砖,  P = 管道,
+    //        C = 金币,  E = 敌人,  F = 旗杆,  S = 星星
+    const levelMaps = {
+      1: {
+        bg: '#5c94fc',
+        tiles: [
+          // 0         1         2         3         4         5         6         7
+          // 01234567890123456789012345678901234567890123456789012345678901234567890123456789
+          '..................................................................................', // 0
+          '..................................................................................', // 1
+          '..................................................................................', // 2
+          '..................................................................................', // 3
+          '.......................................?..............?........?.................', // 4
+          '..................................................................................', // 5
+          '........................?......................?..............................?..', // 6
+          '..................................................................................', // 7
+          '...........GGGG..................GGGG..................GGGG.....................', // 8
+          '..................................................................................', // 9
+          '.....GGGG.........GGGG..................GGGG.........GGGG.......GGGG..............', // 10
+          '..................................................................................', // 11
+          '..................................................................................', // 12
+          'GGGGGGG.....GGGGGGGGGGGG.....GGGGGGGGGGGGGGGGG.....GGGGGGGGGGGGGGG.....GGGGGGGGG', // 13
+          'GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG', // 14
+        ],
+        enemies: [
+          { x: 400, y: 13*TILE - 28, type: 'goomba' },
+          { x: 600, y: 13*TILE - 28, type: 'goomba' },
+          { x: 900, y: 13*TILE - 28, type: 'goomba' },
+          { x: 1100, y: 13*TILE - 28, type: 'goomba' },
+          { x: 1350, y: 10*TILE - 28, type: 'goomba' },
+          { x: 1500, y: 13*TILE - 28, type: 'goomba' },
+          { x: 1800, y: 13*TILE - 28, type: 'koopa' },
+          { x: 2000, y: 13*TILE - 28, type: 'goomba' },
+        ],
+        coins: [
+          { x: 380, y: 10*TILE - 10 },
+          { x: 420, y: 10*TILE - 10 },
+          { x: 460, y: 10*TILE - 10 },
+          { x: 700, y: 11*TILE + 5 },
+          { x: 740, y: 11*TILE + 5 },
+          { x: 780, y: 11*TILE + 5 },
+          { x: 1000, y: 12*TILE + 5 },
+          { x: 1040, y: 12*TILE + 5 },
+          { x: 1080, y: 12*TILE + 5 },
+          { x: 1300, y: 8*TILE - 10 },
+          { x: 1340, y: 8*TILE - 10 },
+          { x: 1380, y: 8*TILE - 10 },
+          { x: 1600, y: 10*TILE - 10 },
+          { x: 1640, y: 10*TILE - 10 },
+          { x: 1700, y: 12*TILE + 5 },
+          { x: 1740, y: 12*TILE + 5 },
+        ],
+        flagX: 2500,
+      },
+      2: {
+        bg: '#1a1a4e',
+        tiles: [
+          '..................................................................................',
+          '..................................................................................',
+          '..................................?..............?.............?.................', // 2
+          '..................................................................................',
+          '.............GGG......................GGG..................GGG....................', // 4
+          '..................................................................................',
+          '......................?.......................?..............?....................', // 6
+          '..................................................................................',
+          '.......GGGG.........GGGG..........GGGG..........GGGG.........GGGG.................', // 8
+          '..................................................................................',
+          '............GGGG.........GGGG...........GGGG.........GGGG.........................', // 10
+          '..................................................................................',
+          '..................................................................................',
+          'GGGGGGGG.....GGGGGGGGGGGGG.....GGGGGGGGGGGGGG.....GGGGGGGGGGGGG.....GGGGGGGGGGG', // 13
+          'GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG',
+        ],
+        enemies: [
+          { x: 350, y: 13*TILE - 28, type: 'goomba' },
+          { x: 550, y: 13*TILE - 28, type: 'goomba' },
+          { x: 750, y: 10*TILE - 28, type: 'koopa' },
+          { x: 950, y: 13*TILE - 28, type: 'goomba' },
+          { x: 1150, y: 13*TILE - 28, type: 'goomba' },
+          { x: 1350, y: 13*TILE - 28, type: 'goomba' },
+          { x: 1550, y: 13*TILE - 28, type: 'koopa' },
+          { x: 1750, y: 13*TILE - 28, type: 'goomba' },
+          { x: 1950, y: 8*TILE - 28, type: 'goomba' },
+          { x: 2100, y: 13*TILE - 28, type: 'goomba' },
+        ],
+        coins: [
+          { x: 320, y: 4*TILE - 10 },
+          { x: 360, y: 4*TILE - 10 },
+          { x: 400, y: 4*TILE - 10 },
+          { x: 650, y: 11*TILE + 5 },
+          { x: 690, y: 11*TILE + 5 },
+          { x: 730, y: 11*TILE + 5 },
+          { x: 1000, y: 8*TILE - 10 },
+          { x: 1040, y: 8*TILE - 10 },
+          { x: 1080, y: 8*TILE - 10 },
+          { x: 1300, y: 12*TILE + 5 },
+          { x: 1340, y: 12*TILE + 5 },
+          { x: 1380, y: 12*TILE + 5 },
+          { x: 1600, y: 10*TILE - 10 },
+          { x: 1640, y: 10*TILE - 10 },
+          { x: 2000, y: 12*TILE + 5 },
+          { x: 2040, y: 12*TILE + 5 },
+        ],
+        flagX: 2500,
+      }
+    };
+
+    let mapData;
+    let enemies = [];
+    let coinItems = [];
+    let questionBlocks = [];
+    let particles = [];
+    let mapWidth;
+
+    function loadLevel(n) {
+      const lv = levelMaps[n] || levelMaps[1];
+      mapData = lv.tiles.map(row => row.split(''));
+      mapWidth = mapData[0].length * TILE;
+      enemies = lv.enemies.map(e => ({ ...e, alive: true, vx: -1 }));
+      coinItems = lv.coins.map(c => ({ ...c, collected: false, animTimer: 0 }));
+      questionBlocks = [];
+      particles = [];
+      // 解析问号砖
+      for (let row = 0; row < mapData.length; row++) {
+        for (let col = 0; col < mapData[row].length; col++) {
+          if (mapData[row][col] === '?') {
+            questionBlocks.push({
+              x: col * TILE,
+              y: row * TILE,
+              w: TILE,
+              h: TILE,
+              hit: false,
+              bounceTimer: 0
+            });
+          }
+        }
+      }
+      player.x = 80;
+      player.y = 200;
+      player.vx = 0;
+      player.vy = 0;
+      player.invincible = 0;
+      player.powerUp = 'none';
+      player.powerTimer = 0;
+      player.w = 28;
+      player.h = 36;
+      player._shotCooldown = 0;
+      spawnedItems = [];
+      fireballs = [];
+      cameraX = 0;
+      gameWin = false;
+      document.getElementById('level').textContent = n;
+    }
+
+    // ── 碰撞检测 ──────────────────────────────
+    function rectCollide(a, b) {
+      return a.x < b.x + b.w && a.x + a.w > b.x &&
+             a.y < b.y + b.h && a.y + a.h > b.y;
+    }
+
+    function getTile(col, row) {
+      if (col < 0 || col >= mapData[0].length || row < 0 || row >= mapData.length) return '.';
+      return mapData[row][col];
+    }
+
+    function isSolid(ch) {
+      return ch === 'G' || ch === 'B' || ch === '?' || ch === 'P';
+    }
+
+    // ── 粒子效果 ──────────────────────────────
+    function spawnParticles(x, y, color, count = 8) {
+      for (let i = 0; i < count; i++) {
+        particles.push({
+          x, y,
+          vx: (Math.random() - 0.5) * 6,
+          vy: -(Math.random() * 6 + 2),
+          life: 30 + Math.random() * 20,
+          color
+        });
+      }
+    }
+
+    // ── 更新逻辑 ──────────────────────────────
+    function update() {
+      if (gameWin) return;
+
+      // ── 玩家移动 ──────────────────────────
+      const SPEED = 5.5;
+      const JUMP_FORCE = -12.5;
+
+      const moveLeft = keys['ArrowLeft'] || keys['KeyA'];
+      const moveRight = keys['ArrowRight'] || keys['KeyD'];
+      const jumpHeld = keys['Space'];
+      const shootPressed = keys['KeyX'] || keys['KeyJ'];
+
+      if (moveLeft) {
+        player.vx -= 0.9;
+        player.facing = -1;
+      }
+      if (moveRight) {
+        player.vx += 0.9;
+        player.facing = 1;
+      }
+
+      // 摩擦力
+      player.vx *= FRICTION;
+      if (Math.abs(player.vx) < 0.1) player.vx = 0;
+
+      // 限速
+      player.vx = Math.max(-SPEED, Math.min(SPEED, player.vx));
+
+      // ── 土狼时间：刚走出平台边缘仍可跳 ──
+      if (player.onGround) {
+        player.coyoteTimer = COYOTE_TIME;
+      } else if (player.coyoteTimer > 0) {
+        player.coyoteTimer--;
+      }
+
+      // ── 跳跃缓冲：提前按跳会在落地时触发 ──
+      if (jumpHeld && !player.onGround && player.coyoteTimer <= 0) {
+        player.jumpBufferTimer = JUMP_BUFFER;
+      } else if (player.jumpBufferTimer > 0) {
+        player.jumpBufferTimer--;
+      }
+
+      // ── 跳跃 ──
+      const canJump = jumpHeld && (player.onGround || player.coyoteTimer > 0 || player.jumpBufferTimer > 0);
+      if (canJump) {
+        player.vy = JUMP_FORCE;
+        player.onGround = false;
+        player.coyoteTimer = 0;
+        player.jumpBufferTimer = 0;
+        playSound('jump');
+      }
+
+      // 可变跳跃高度（松开按键时减少上升力，但保留足够高度）
+      if (!jumpHeld && player.vy < -6.5) {
+        player.vy = -6.5;
+      }
+
+      // 重力
+      player.vy += GRAVITY;
+      if (player.vy > 15) player.vy = 15;
+
+      // ── 火球射击（X 键） ──────────────────
+      if (shootPressed && !player._shotCooldown) {
+        shootFireball();
+        player._shotCooldown = 15; // 冷却15帧
+      }
+      if (player._shotCooldown > 0) player._shotCooldown--;
+
+      // ── X 轴碰撞 ──────────────────────────
+      player.x += player.vx;
+
+      // 边界
+      if (player.x < 0) player.x = 0;
+      if (player.x + player.w > mapWidth) player.x = mapWidth - player.w;
+
+      // 瓦片碰撞 X
+      const leftTile = Math.floor(player.x / TILE);
+      const rightTile = Math.floor((player.x + player.w) / TILE);
+      const topTile = Math.floor(player.y / TILE);
+      const bottomTile = Math.floor((player.y + player.h) / TILE);
+
+      for (let row = topTile; row <= bottomTile; row++) {
+        for (let col = leftTile; col <= rightTile; col++) {
+          const ch = getTile(col, row);
+          if (isSolid(ch)) {
+            const tileRect = { x: col * TILE, y: row * TILE, w: TILE, h: TILE };
+            const pRect = { x: player.x, y: player.y, w: player.w, h: player.h };
+            if (rectCollide(pRect, tileRect)) {
+              if (player.vx > 0) {
+                player.x = tileRect.x - player.w;
+              } else if (player.vx < 0) {
+                player.x = tileRect.x + TILE;
+              }
+              player.vx = 0;
+            }
+          }
+        }
+      }
+
+      // ── Y 轴碰撞 ──────────────────────────
+      player.y += player.vy;
+      player.onGround = false;
+
+      const newTop = Math.floor(player.y / TILE);
+      const newBottom = Math.floor((player.y + player.h) / TILE);
+      const newLeft = Math.floor(player.x / TILE);
+      const newRight = Math.floor((player.x + player.w) / TILE);
+
+      for (let row = newTop; row <= newBottom; row++) {
+        for (let col = newLeft; col <= newRight; col++) {
+          const ch = getTile(col, row);
+          if (isSolid(ch)) {
+            const tileRect = { x: col * TILE, y: row * TILE, w: TILE, h: TILE };
+            const pRect = { x: player.x, y: player.y, w: player.w, h: player.h };
+            if (rectCollide(pRect, tileRect)) {
+              if (player.vy > 0) {
+                player.y = tileRect.y - player.h;
+                player.vy = 0;
+                player.onGround = true;
+              } else if (player.vy < 0) {
+                player.y = tileRect.y + TILE;
+                player.vy = 0;
+                // 撞击问号砖 —— 随机道具
+                if (ch === '?') {
+                  const qb = questionBlocks.find(q => q.x === col*TILE && q.y === row*TILE && !q.hit);
+                  if (qb) {
+                    qb.hit = true;
+                    qb.bounceTimer = 10;
+                    mapData[row][col] = 'B';
+                    playSound('block');
+                    spawnParticles(col*TILE + TILE/2, row*TILE, '#ffd700', 6);
+                    // 随机道具：40%金币 25%蘑菇 25%火花 10%星星
+                    const r = Math.random();
+                    const bx = col * TILE + 2;
+                    const by = row * TILE - 28;
+                    if (r < 0.4) {
+                      // 金币
+                      coins++;
+                      score += 200;
+                    } else if (r < 0.65) {
+                      spawnedItems.push({ x: bx, y: by, w: 26, h: 26, vy: -6, type: 'mushroom', life: 300 });
+                    } else if (r < 0.9) {
+                      spawnedItems.push({ x: bx, y: by, w: 26, h: 26, vy: -6, type: 'fireflower', life: 300 });
+                    } else {
+                      spawnedItems.push({ x: bx, y: by, w: 26, h: 26, vy: -6, type: 'star', life: 300 });
+                    }
+                    updateHUD();
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+
+      // 掉落死亡
+      if (player.y > H + 50) {
+        die();
+        return;
+      }
+
+      // ── 无敌时间 ──────────────────────────
+      if (player.invincible > 0) player.invincible--;
+
+      // ── 动画状态 ──────────────────────────
+      if (!player.onGround) {
+        player.animState = 'jump';
+      } else if (Math.abs(player.vx) > 0.5) {
+        player.animState = 'run';
+      } else {
+        player.animState = 'idle';
+      }
+
+      player.frameTimer++;
+      if (player.frameTimer > 6) {
+        player.frameTimer = 0;
+        player.frame = (player.frame + 1) % 4;
+      }
+
+      // ── 敌人更新 ──────────────────────────
+      for (const enemy of enemies) {
+        if (!enemy.alive) continue;
+
+        // 只在屏幕附近移动
+        if (Math.abs(enemy.x - player.x) > W) continue;
+
+        enemy.x += enemy.vx;
+
+        // 敌人重力/地面检测
+        const eLeft = Math.floor(enemy.x / TILE);
+        const eRight = Math.floor((enemy.x + 28) / TILE);
+        const eBelow = Math.floor((enemy.y + 28) / TILE);
+        let eOnGround = false;
+        for (let col = eLeft; col <= eRight; col++) {
+          if (isSolid(getTile(col, eBelow + 1))) {
+            eOnGround = true;
+            break;
+          }
+        }
+        // 边缘检测转向
+        if (eOnGround) {
+          const aheadX = enemy.vx > 0 ? enemy.x + 28 : enemy.x;
+          const aheadCol = Math.floor(aheadX / TILE);
+          const aheadBelow = Math.floor((enemy.y + 28) / TILE);
+          const belowAhead = getTile(aheadCol + (enemy.vx > 0 ? 1 : -1), aheadBelow);
+          const wallAhead = getTile(aheadCol + (enemy.vx > 0 ? 1 : -1), Math.floor(enemy.y / TILE));
+          // 前方是悬崖或墙时转向
+          if (!isSolid(belowAhead) || isSolid(wallAhead)) {
+            enemy.vx *= -1;
+          }
+        }
+
+        // 碰墙转向
+        const eMidY = Math.floor((enemy.y + 14) / TILE);
+        const eCheckX = enemy.vx > 0 ? Math.floor((enemy.x + 28) / TILE) : Math.floor(enemy.x / TILE);
+        if (isSolid(getTile(eCheckX, eMidY))) {
+          enemy.vx *= -1;
+        }
+
+        // 玩家碰撞
+        const pBox = { x: player.x, y: player.y, w: player.w, h: player.h };
+        const eBox = { x: enemy.x, y: enemy.y, w: 28, h: 28 };
+        if (rectCollide(pBox, eBox)) {
+          // 星星无敌：秒杀敌人
+          if (player.powerUp === 'star') {
+            enemy.alive = false;
+            score += 200;
+            spawnParticles(enemy.x + 14, enemy.y + 14, '#00ffff', 8);
+            playSound('stomp');
+            updateHUD();
+          } else if (player.invincible <= 0) {
+            // 踩头判定
+            if (player.vy > 0 && player.y + player.h - enemy.y < 20) {
+              // 踩死敌人
+              enemy.alive = false;
+              player.vy = -8;
+              score += 100;
+              spawnParticles(enemy.x + 14, enemy.y + 14, '#e52521', 8);
+              playSound('stomp');
+              updateHUD();
+            } else {
+              // 受伤：击退 + 无敌
+              hurt(enemy);
+              return;
+            }
+          }
+        }
+      }
+
+      // 清理死亡敌人
+      enemies = enemies.filter(e => e.alive);
+
+      // ── 金币收集 ──────────────────────────
+      for (const coin of coinItems) {
+        if (coin.collected) continue;
+        coin.animTimer++;
+        const dx = player.x + player.w/2 - (coin.x + 8);
+        const dy = player.y + player.h/2 - (coin.y + 8);
+        if (Math.sqrt(dx*dx + dy*dy) < 30) {
+          coin.collected = true;
+          coins++;
+          score += 50;
+          spawnParticles(coin.x + 8, coin.y + 8, '#ffd700', 5);
+          playSound('coin');
+          updateHUD();
+        }
+      }
+
+      // ── 道具更新 ──────────────────────────
+      for (const item of spawnedItems) {
+        item.vy += GRAVITY;
+        item.y += item.vy;
+
+        // 地面碰撞
+        const iLeft = Math.floor(item.x / TILE);
+        const iRight = Math.floor((item.x + item.w) / TILE);
+        const iBelow = Math.floor((item.y + item.h) / TILE);
+        for (let col = iLeft; col <= iRight; col++) {
+          if (isSolid(getTile(col, iBelow + 1))) {
+            const groundY = (iBelow + 1) * TILE - item.h;
+            if (item.y + item.vy > groundY) {
+              item.y = groundY;
+              item.vy = Math.abs(item.vy) * 0.3; // 弹跳衰减
+              if (Math.abs(item.vy) < 0.8) item.vy = 0;
+            }
+          }
+        }
+
+        // 道具与玩家碰撞收集
+        const pBox = { x: player.x, y: player.y, w: player.w, h: player.h };
+        const iBox = { x: item.x, y: item.y, w: item.w, h: item.h };
+        if (rectCollide(pBox, iBox)) {
+          item.collected = true;
+          applyPowerUp(item.type);
+        }
+
+        item.life--;
+      }
+      spawnedItems = spawnedItems.filter(i => !i.collected && i.life > 0);
+
+      // ── 火球更新 ──────────────────────────
+      for (const fb of fireballs) {
+        fb.x += fb.vx;
+        fb.y += fb.vy;
+        fb.vy += 0.3;
+        // 碰地弹跳（fb.x/fb.y 是圆心）
+        const fbBelow = Math.floor((fb.y + 6) / TILE);
+        const fbCol = Math.floor(fb.x / TILE);
+        if (isSolid(getTile(fbCol, fbBelow + 1))) {
+          fb.y = (fbBelow + 1) * TILE - 6;
+          fb.vy = -5;
+        }
+        // 碰撞敌人（距离检测，fireball 圆心 vs 敌人矩形）
+        for (const enemy of enemies) {
+          if (!enemy.alive) continue;
+          const ecx = enemy.x + 14, ecy = enemy.y + 14;
+          const dx = fb.x - ecx, dy = fb.y - ecy;
+          if (Math.abs(dx) < 18 && Math.abs(dy) < 18) {
+            enemy.alive = false;
+            fb.hit = true;
+            score += 100;
+            spawnParticles(enemy.x + 14, enemy.y + 14, '#ff4500', 6);
+            playSound('stomp');
+            updateHUD();
+            break;
+          }
+        }
+        fb.life--;
+      }
+      fireballs = fireballs.filter(fb => !fb.hit && fb.life > 0);
+
+      // ── 限时道具倒计时 ──────────────────────
+      if (player.powerTimer > 0) {
+        player.powerTimer--;
+        if (player.powerTimer <= 0 && player.powerUp === 'star') {
+          player.powerUp = 'none';
+        }
+      }
+
+      // ── 粒子更新 ──────────────────────────
+      for (const p of particles) {
+        p.x += p.vx;
+        p.y += p.vy;
+        p.vy += 0.2;
+        p.life--;
+      }
+      particles = particles.filter(p => p.life > 0);
+
+      // ── 问号砖弹跳动画 ────────────────────
+      for (const qb of questionBlocks) {
+        if (qb.bounceTimer > 0) qb.bounceTimer--;
+      }
+
+      // ── 到达旗帜 ──────────────────────────
+      const lv = levelMaps[level];
+      if (player.x + player.w/2 > lv.flagX) {
+        winLevel();
+      }
+
+      // ── 相机 ──────────────────────────────
+      const targetCX = player.x - W / 3;
+      cameraX += (targetCX - cameraX) * 0.1;
+      if (cameraX < 0) cameraX = 0;
+      if (cameraX > mapWidth - W) cameraX = mapWidth - W;
+    }
+
+    function applyPowerUp(type) {
+      playSound('powerup');
+      spawnParticles(player.x + 14, player.y + 18, '#fff', 10);
+      switch (type) {
+        case 'mushroom':
+          player.powerUp = 'mushroom';
+          player.w = 32;
+          player.h = 48;
+          player.y -= 12; // 变大后调整位置
+          score += 500;
+          break;
+        case 'fireflower':
+          player.powerUp = 'fire';
+          if (player.w > 28) { // 已经是蘑菇状态
+            player.w = 32;
+            player.h = 48;
+          }
+          score += 500;
+          break;
+        case 'star':
+          player.powerUp = 'star';
+          player.powerTimer = 600; // 10秒
+          score += 1000;
+          break;
+      }
+      updateHUD();
+    }
+
+    function shootFireball() {
+      if (player.powerUp !== 'fire') return;
+      fireballs.push({
+        x: player.x + (player.facing > 0 ? player.w : -6),
+        y: player.y + player.h / 2,
+        vx: player.facing * 7,
+        vy: -2,
+        life: 60,
+        hit: false,
+      });
+    }
+
+    function hurt(enemy) {
+      if (player.invincible > 0) return;
+      playSound('hurt');
+      player.invincible = 150; // 2.5秒无敌时间
+      // 击退：远离敌人
+      const knockDir = player.x < enemy.x ? -1 : 1;
+      player.vx = knockDir * 6;
+      player.vy = -8;
+      player.onGround = false;
+    }
+
+    function die() {
+      playSound('hurt');
+      player.invincible = 150;
+      player.x = 80;
+      player.y = 200;
+      player.vx = 0;
+      player.vy = 0;
+      cameraX = 0;
+    }
+
+    function winLevel() {
+      score += 1000;
+      playSound('win');
+      updateHUD();
+      if (levelMaps[level + 1]) {
+        level++;
+        showOverlay(`关卡 ${level-1} 通过！🎉`, '准备进入下一关...', 'win');
+        loadLevel(level);
+      } else {
+        gameWin = true;
+        showOverlay('恭喜通关！🏆', `最终得分: ${score}`, 'win');
+      }
+    }
+
+    function showOverlay(title, text, type) {
+      document.getElementById('msgTitle').textContent = title;
+      document.getElementById('msgTitle').className = type;
+      document.getElementById('msgText').textContent = text;
+      document.getElementById('overlay').classList.add('show');
+    }
+
+    function hideOverlay() {
+      document.getElementById('overlay').classList.remove('show');
+    }
+
+    function updateHUD() {
+      document.getElementById('score').textContent = score;
+      document.getElementById('coins').textContent = coins;
+    }
+
+    function restartGame() {
+      score = 0;
+      coins = 0;
+      level = 1;
+      updateHUD();
+      hideOverlay();
+      stopBGM();
+      loadLevel(1);
+      startBGM();
+      gameWin = false;
+    }
+
+    // ── 渲染 ──────────────────────────────────
+    function draw() {
+      const lv = levelMaps[level];
+      // 天空
+      const skyGrad = ctx.createLinearGradient(0, 0, 0, H);
+      skyGrad.addColorStop(0, lv.bg);
+      skyGrad.addColorStop(1, '#1a1a2e');
+      ctx.fillStyle = skyGrad;
+      ctx.fillRect(0, 0, W, H);
+
+      // 云朵（背景装饰）
+      ctx.fillStyle = 'rgba(255,255,255,0.15)';
+      for (let i = 0; i < 10; i++) {
+        const cx = ((i * 300 + 100) - cameraX * 0.3) % (W + 400) - 200;
+        const cy = 60 + (i % 3) * 60;
+        drawCloud(cx, cy, 0.6 + (i % 3) * 0.2);
+      }
+
+      // 远山
+      ctx.fillStyle = 'rgba(255,255,255,0.06)';
+      ctx.beginPath();
+      ctx.moveTo(0, H);
+      for (let x = 0; x < W; x += 5) {
+        const worldX = x + cameraX * 0.4;
+        const h = 100 + Math.sin(worldX * 0.003) * 60 + Math.sin(worldX * 0.007) * 40;
+        ctx.lineTo(x, H - h);
+      }
+      ctx.lineTo(W, H);
+      ctx.fill();
+
+      ctx.save();
+      ctx.translate(-cameraX, 0);
+
+      // ── 瓦片 ──────────────────────────────
+      for (let row = 0; row < mapData.length; row++) {
+        for (let col = Math.max(0, Math.floor(cameraX / TILE) - 1);
+             col < Math.min(mapData[0].length, Math.ceil((cameraX + W) / TILE) + 1);
+             col++) {
+          const ch = mapData[row][col];
+          const tx = col * TILE;
+          const ty = row * TILE;
+
+          if (ch === 'G') {
+            // 地面砖
+            ctx.fillStyle = '#8B4513';
+            ctx.fillRect(tx, ty, TILE, TILE);
+            ctx.fillStyle = '#A0522D';
+            ctx.fillRect(tx + 2, ty + 2, TILE - 4, TILE - 4);
+            // 纹理
+            ctx.fillStyle = '#6B3410';
+            ctx.fillRect(tx + 8, ty + 4, 10, 4);
+            ctx.fillRect(tx + 4, ty + 14, 14, 4);
+            ctx.fillRect(tx + 14, ty + 22, 10, 4);
+            ctx.strokeStyle = '#5C2D0A';
+            ctx.lineWidth = 1;
+            ctx.strokeRect(tx + 0.5, ty + 0.5, TILE - 1, TILE - 1);
+          } else if (ch === 'B') {
+            // 砖块
+            ctx.fillStyle = '#CD853F';
+            ctx.fillRect(tx, ty, TILE, TILE);
+            ctx.fillStyle = '#DEB887';
+            ctx.fillRect(tx + 2, ty + 2, TILE - 4, TILE - 4);
+            ctx.fillStyle = '#CD853F';
+            ctx.fillRect(tx + TILE/2 - 1, ty + 2, 2, TILE - 4);
+            ctx.fillRect(tx + 2, ty + TILE/2 - 1, TILE - 4, 2);
+            ctx.strokeStyle = '#8B6914';
+            ctx.lineWidth = 1;
+            ctx.strokeRect(tx + 0.5, ty + 0.5, TILE - 1, TILE - 1);
+          } else if (ch === '?') {
+            // 问号砖
+            const qb = questionBlocks.find(q => q.x === tx && q.y === ty);
+            const bounce = qb ? Math.sin(qb.bounceTimer * 0.5) * 4 : 0;
+            const by = ty + bounce;
+            ctx.fillStyle = '#FFA500';
+            ctx.fillRect(tx, by, TILE, TILE);
+            ctx.fillStyle = '#FFD700';
+            ctx.fillRect(tx + 2, by + 2, TILE - 4, TILE - 4);
+            ctx.strokeStyle = '#CC8400';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(tx + 1, by + 1, TILE - 2, TILE - 2);
+            // 问号
+            ctx.fillStyle = '#CC8400';
+            ctx.font = 'bold 22px monospace';
+            ctx.textAlign = 'center';
+            ctx.fillText('?', tx + TILE/2, by + 24);
+            ctx.textAlign = 'start';
+          } else if (ch === 'P') {
+            // 管道
+            ctx.fillStyle = '#2E8B57';
+            ctx.fillRect(tx, ty, TILE, TILE);
+            ctx.fillStyle = '#3CB371';
+            ctx.fillRect(tx + 4, ty, TILE - 8, TILE);
+            ctx.fillStyle = '#2E8B57';
+            ctx.fillRect(tx - 2, ty, TILE + 4, 8);
+            ctx.strokeStyle = '#1A5C3A';
+            ctx.lineWidth = 1;
+            ctx.strokeRect(tx + 0.5, ty + 0.5, TILE - 1, TILE - 1);
+          }
+        }
+      }
+
+      // ── 金币 ──────────────────────────────
+      for (const coin of coinItems) {
+        if (coin.collected) continue;
+        const scale = 0.8 + Math.sin(coin.animTimer * 0.1) * 0.2;
+        const cx = coin.x + 8;
+        const cy = coin.y + 8;
+        ctx.save();
+        ctx.translate(cx, cy);
+        ctx.scale(scale, scale);
+        // 金币发光
+        ctx.fillStyle = '#FFD700';
+        ctx.beginPath();
+        ctx.arc(0, 0, 8, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#FFA500';
+        ctx.beginPath();
+        ctx.arc(0, 0, 6, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#FFD700';
+        ctx.beginPath();
+        ctx.arc(0, 0, 4, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#FFF8DC';
+        ctx.font = 'bold 12px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText('$', 0, 5);
+        ctx.textAlign = 'start';
+        ctx.restore();
+      }
+
+      // ── 敌人 ──────────────────────────────
+      for (const enemy of enemies) {
+        if (!enemy.alive) continue;
+        if (Math.abs(enemy.x - player.x) > W) continue;
+
+        if (enemy.type === 'goomba') {
+          // 栗子怪
+          ctx.fillStyle = '#8B4513';
+          ctx.beginPath();
+          ctx.ellipse(enemy.x + 14, enemy.y + 18, 12, 10, 0, Math.PI, 0);
+          ctx.fill();
+          ctx.fillStyle = '#DEB887';
+          ctx.fillRect(enemy.x + 2, enemy.y + 18, 24, 10);
+          // 眼睛
+          ctx.fillStyle = '#fff';
+          ctx.fillRect(enemy.x + 6, enemy.y + 14, 6, 6);
+          ctx.fillRect(enemy.x + 16, enemy.y + 14, 6, 6);
+          ctx.fillStyle = '#000';
+          ctx.fillRect(enemy.x + 8, enemy.y + 15, 3, 4);
+          ctx.fillRect(enemy.x + 18, enemy.y + 15, 3, 4);
+          // 脚
+          ctx.fillStyle = '#000';
+          ctx.fillRect(enemy.x + 3, enemy.y + 24, 8, 4);
+          ctx.fillRect(enemy.x + 17, enemy.y + 24, 8, 4);
+          // 眉毛（生气）
+          ctx.strokeStyle = '#000';
+          ctx.lineWidth = 1.5;
+          ctx.beginPath();
+          ctx.moveTo(enemy.x + 5, enemy.y + 13);
+          ctx.lineTo(enemy.x + 11, enemy.y + 14);
+          ctx.moveTo(enemy.x + 23, enemy.y + 13);
+          ctx.lineTo(enemy.x + 17, enemy.y + 14);
+          ctx.stroke();
+        } else if (enemy.type === 'koopa') {
+          // 绿龟
+          // 壳
+          ctx.fillStyle = '#228B22';
+          ctx.beginPath();
+          ctx.ellipse(enemy.x + 14, enemy.y + 16, 12, 10, 0, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.fillStyle = '#32CD32';
+          ctx.beginPath();
+          ctx.ellipse(enemy.x + 14, enemy.y + 16, 8, 7, 0, 0, Math.PI * 2);
+          ctx.fill();
+          // 头
+          ctx.fillStyle = '#90EE90';
+          if (enemy.vx > 0) {
+            ctx.fillRect(enemy.x + 20, enemy.y + 8, 8, 12);
+          } else {
+            ctx.fillRect(enemy.x, enemy.y + 8, 8, 12);
+          }
+          // 眼睛
+          ctx.fillStyle = '#fff';
+          const eyeX = enemy.vx > 0 ? enemy.x + 24 : enemy.x + 4;
+          ctx.fillRect(eyeX, enemy.y + 10, 4, 4);
+          ctx.fillStyle = '#000';
+          ctx.fillRect(eyeX + 1, enemy.y + 11, 2, 2);
+          // 脚
+          ctx.fillStyle = '#90EE90';
+          ctx.fillRect(enemy.x + 3, enemy.y + 22, 7, 6);
+          ctx.fillRect(enemy.x + 18, enemy.y + 22, 7, 6);
+        }
+      }
+
+      // ── 旗帜 ──────────────────────────────
+      const flagX = lv.flagX;
+      if (flagX) {
+        // 旗杆
+        ctx.fillStyle = '#888';
+        ctx.fillRect(flagX - 2, 6*TILE, 4, 8*TILE);
+        // 球
+        ctx.fillStyle = '#0f0';
+        ctx.beginPath();
+        ctx.arc(flagX, 6*TILE, 8, 0, Math.PI*2);
+        ctx.fill();
+        // 旗帜
+        ctx.fillStyle = '#e52521';
+        ctx.beginPath();
+        ctx.moveTo(flagX, 6*TILE + 4);
+        ctx.lineTo(flagX - 30, 6*TILE + 20);
+        ctx.lineTo(flagX, 6*TILE + 36);
+        ctx.closePath();
+        ctx.fill();
+        // 星
+        ctx.fillStyle = '#ffd700';
+        ctx.font = '20px monospace';
+        ctx.fillText('⭐', flagX - 18, 6*TILE + 34);
+      }
+
+      // ── 粒子 ──────────────────────────────
+      for (const p of particles) {
+        const alpha = p.life / 60;
+        ctx.fillStyle = p.color;
+        ctx.globalAlpha = alpha;
+        ctx.fillRect(p.x - 2, p.y - 2, 4, 4);
+      }
+      ctx.globalAlpha = 1;
+
+      // ── 道具渲染 ──────────────────────────
+      for (const item of spawnedItems) {
+        if (item.collected) continue;
+        if (item.type === 'mushroom') {
+          ctx.fillStyle = '#e52521';
+          ctx.beginPath();
+          ctx.ellipse(item.x + 13, item.y + 10, 13, 10, 0, Math.PI, 0);
+          ctx.fill();
+          ctx.fillStyle = '#fff';
+          ctx.fillRect(item.x + 2, item.y + 18, 22, 8);
+          ctx.fillStyle = '#FFB366';
+          ctx.fillRect(item.x + 2, item.y + 10, 22, 8);
+          ctx.fillStyle = '#000';
+          ctx.fillRect(item.x + 7, item.y + 14, 4, 4);
+          ctx.fillRect(item.x + 15, item.y + 14, 4, 4);
+        } else if (item.type === 'fireflower') {
+          const cx2 = item.x + 13, cy2 = item.y + 13;
+          for (let i = 0; i < 5; i++) {
+            const a = (Date.now() / 300 + i * 1.26) % (Math.PI * 2);
+            ctx.fillStyle = i % 2 === 0 ? '#ff4500' : '#ffd700';
+            ctx.beginPath();
+            ctx.arc(cx2 + Math.cos(a) * 10, cy2 + Math.sin(a) * 10, 6, 0, Math.PI * 2);
+            ctx.fill();
+          }
+          ctx.fillStyle = '#fff';
+          ctx.beginPath();
+          ctx.arc(cx2, cy2, 5, 0, Math.PI * 2);
+          ctx.fill();
+        } else if (item.type === 'star') {
+          const cx3 = item.x + 13, cy3 = item.y + 13;
+          ctx.fillStyle = '#ffd700';
+          drawStar(cx3, cy3, 5, 12, 5);
+          ctx.fill();
+        }
+      }
+
+      // ── 火球渲染 ──────────────────────────
+      for (const fb of fireballs) {
+        const grad = ctx.createRadialGradient(fb.x, fb.y, 1, fb.x, fb.y, 6);
+        grad.addColorStop(0, '#fff');
+        grad.addColorStop(0.3, '#ffd700');
+        grad.addColorStop(1, '#ff4500');
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.arc(fb.x, fb.y, 6, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      // ── 玩家 ──────────────────────────────
+      // 无敌闪烁
+      if (player.invincible > 0 && Math.floor(player.invincible / 4) % 2 === 0) {
+        ctx.globalAlpha = 0.4;
+      }
+
+      drawMario(player.x, player.y, player.facing, player.animState, player.frame);
+
+      ctx.globalAlpha = 1;
+
+      ctx.restore();
+
+      // ── HUD 叠加 ──────────────────────────
+      // 无限生命图标
+      ctx.fillStyle = '#e52521';
+      ctx.beginPath();
+      ctx.arc(20, H - 20, 8, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#fff';
+      ctx.font = 'bold 14px monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText('∞', 50, H - 15);
+      ctx.textAlign = 'start';
+    }
+
+    function drawStar(cx, cy, innerR, outerR, points) {
+      ctx.beginPath();
+      for (let i = 0; i < points * 2; i++) {
+        const r = i % 2 === 0 ? outerR : innerR;
+        const angle = (i * Math.PI) / points - Math.PI / 2;
+        const sx = cx + Math.cos(angle) * r;
+        const sy = cy + Math.sin(angle) * r;
+        i === 0 ? ctx.moveTo(sx, sy) : ctx.lineTo(sx, sy);
+      }
+      ctx.closePath();
+    }
+
+    function drawCloud(x, y, scale) {
+      ctx.beginPath();
+      ctx.arc(x, y, 20*scale, 0, Math.PI*2);
+      ctx.arc(x + 25*scale, y - 10*scale, 16*scale, 0, Math.PI*2);
+      ctx.arc(x + 45*scale, y, 18*scale, 0, Math.PI*2);
+      ctx.arc(x + 15*scale, y + 5*scale, 14*scale, 0, Math.PI*2);
+      ctx.fill();
+    }
+
+    function drawMario(x, y, facing, state, frame) {
+      ctx.save();
+      const scaleX = (facing === -1 ? -1 : 1);
+      const isBig = player.w > 30;
+      const cx = x + player.w / 2;
+      const cy = y + player.h / 2;
+      ctx.translate(cx, cy);
+      ctx.scale(scaleX, 1);
+      if (isBig) ctx.scale(1.3, 1.3);
+
+      // 星星无敌：彩虹闪烁
+      let hatColor = '#e52521', shirtColor = '#e52521', overallColor = '#2244cc';
+      if (player.powerUp === 'star') {
+        const hue = (Date.now() / 50 + frame * 30) % 360;
+        hatColor = `hsl(${hue}, 100%, 50%)`;
+        shirtColor = `hsl(${(hue + 60) % 360}, 100%, 50%)`;
+        overallColor = `hsl(${(hue + 120) % 360}, 100%, 50%)`;
+      } else if (player.powerUp === 'fire') {
+        hatColor = '#fff';
+        shirtColor = '#ff4500';
+        overallColor = '#fff';
+      } else if (player.powerUp === 'mushroom') {
+        hatColor = '#e52521';
+        shirtColor = '#e52521';
+        overallColor = '#2244cc';
+      }
+      const skinColor = '#FFB366';
+      const shoeColor = '#8B4513';
+
+      if (state === 'jump') {
+        // 跳跃姿态
+        // 帽子
+        ctx.fillStyle = hatColor;
+        ctx.fillRect(-10, -16, 20, 8);
+        ctx.fillRect(-12, -12, 24, 4);
+        // 脸
+        ctx.fillStyle = skinColor;
+        ctx.fillRect(-8, -8, 16, 12);
+        // 眼睛
+        ctx.fillStyle = '#fff';
+        ctx.fillRect(0, -6, 5, 5);
+        ctx.fillStyle = '#000';
+        ctx.fillRect(2, -5, 2, 3);
+        // 胡子
+        ctx.fillStyle = '#8B4513';
+        ctx.fillRect(4, -2, 10, 3);
+        // 身体
+        ctx.fillStyle = shirtColor;
+        ctx.fillRect(-6, 4, 12, 8);
+        // 手举起
+        ctx.fillStyle = skinColor;
+        ctx.fillRect(-14, 0, 6, 6);
+        ctx.fillRect(8, -4, 6, 6);
+        // 裤子
+        ctx.fillStyle = overallColor;
+        ctx.fillRect(-7, 10, 6, 8);
+        ctx.fillRect(1, 10, 6, 8);
+        // 鞋
+        ctx.fillStyle = shoeColor;
+        ctx.fillRect(-8, 16, 8, 5);
+        ctx.fillRect(0, 16, 8, 5);
+      } else {
+        // 帽子
+        ctx.fillStyle = hatColor;
+        ctx.fillRect(-10, -16, 20, 8);
+        ctx.fillRect(-12, -12, 24, 4);
+        // 脸
+        ctx.fillStyle = skinColor;
+        ctx.fillRect(-8, -8, 16, 12);
+        // 眼睛
+        ctx.fillStyle = '#fff';
+        ctx.fillRect(0, -6, 5, 5);
+        ctx.fillStyle = '#000';
+        ctx.fillRect(2, -5, 2, 3);
+        // 胡子
+        ctx.fillStyle = '#8B4513';
+        ctx.fillRect(4, -2, 10, 3);
+        // 身体
+        ctx.fillStyle = shirtColor;
+        ctx.fillRect(-6, 4, 12, 8);
+        // 手
+        ctx.fillStyle = skinColor;
+        const armSwing = state === 'run' ? Math.sin(frame * Math.PI / 2) * 4 : 0;
+        ctx.fillRect(-14, 4 + armSwing, 6, 6);
+        ctx.fillRect(8, 4 - armSwing, 6, 6);
+        // 裤子
+        ctx.fillStyle = overallColor;
+        ctx.fillRect(-7, 12, 6, 8);
+        ctx.fillRect(1, 12, 6, 8);
+        // 鞋
+        ctx.fillStyle = shoeColor;
+        const legSwing = state === 'run' ? Math.sin(frame * Math.PI / 2) * 3 : 0;
+        ctx.fillRect(-8, 18 + legSwing, 8, 5);
+        ctx.fillRect(0, 18 - legSwing, 8, 5);
+      }
+
+      ctx.restore();
+    }
+
+    // ── 游戏循环 ────────────────────────────
+    function gameLoop() {
+      update();
+      draw();
+      requestAnimationFrame(gameLoop);
+    }
+
+    // ── 启动 ────────────────────────────────
+    loadLevel(1);
+    updateHUD();
+    startBGM();
+    gameLoop();
+
+    console.log('🍄 超级玛丽已就绪！');
+    console.log('   ← → 移动  |  空格 跳跃  |  X 火球  |  R 重来');
+    console.log('   顶 ? 砖块获取道具：蘑菇变大、火花射击、星星无敌！');
+    console.log('   收集金币，到达旗杆过关！');
+  </script>
+</body>
+</html>
