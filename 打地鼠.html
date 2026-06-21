@@ -384,17 +384,47 @@
     // ==================== Speech ====================
     let speechEnabled = true;
 
+    // Chinese translations for all words in the pool
+    const WORD_CN = {
+      'apple': '苹果', 'banana': '香蕉', 'cat': '猫', 'dog': '狗',
+      'sun': '太阳', 'star': '星星', 'fish': '鱼', 'bird': '鸟',
+      'book': '书', 'cake': '蛋糕', 'ball': '球', 'tree': '树',
+      'moon': '月亮', 'flower': '花', 'car': '汽车', 'house': '房子',
+      'milk': '牛奶', 'bear': '熊', 'rain': '雨', 'egg': '鸡蛋',
+      'hat': '帽子', 'duck': '鸭子', 'frog': '青蛙', 'goat': '山羊',
+      'hill': '山丘', 'ice': '冰', 'jump': '跳', 'kite': '风筝',
+      'lion': '狮子', 'nest': '鸟巢', 'owl': '猫头鹰', 'pig': '猪',
+      'queen': '女王', 'rose': '玫瑰', 'ship': '船', 'toy': '玩具',
+      'van': '货车', 'wolf': '狼', 'yarn': '毛线', 'zebra': '斑马',
+      'cloud': '云', 'drum': '鼓', 'flag': '旗帜', 'grape': '葡萄',
+      'heart': '心', 'key': '钥匙', 'lamp': '灯', 'mouse': '老鼠',
+    };
+
     function speakWord(word) {
       if (!speechEnabled) return;
       if (!('speechSynthesis' in window)) return;
       try {
         window.speechSynthesis.cancel();
-        const utter = new SpeechSynthesisUtterance(word);
-        utter.lang = 'en-US';
-        utter.rate = 0.8;
-        utter.pitch = 1.1;
-        utter.volume = 0.7;
-        window.speechSynthesis.speak(utter);
+        // Speak English word
+        const utterEn = new SpeechSynthesisUtterance(word);
+        utterEn.lang = 'en-US';
+        utterEn.rate = 0.8;
+        utterEn.pitch = 1.1;
+        utterEn.volume = 0.7;
+        window.speechSynthesis.speak(utterEn);
+
+        // Speak Chinese meaning after English finishes
+        const cn = WORD_CN[word];
+        if (cn) {
+          utterEn.onend = () => {
+            const utterCn = new SpeechSynthesisUtterance(cn);
+            utterCn.lang = 'zh-CN';
+            utterCn.rate = 0.85;
+            utterCn.pitch = 1.0;
+            utterCn.volume = 0.7;
+            window.speechSynthesis.speak(utterCn);
+          };
+        }
       } catch (e) { /* not available */ }
     }
 
@@ -996,7 +1026,7 @@
         isGolden,
         isBomb,
         stayTime: 0,
-        maxStay: isGolden ? 2000 : (isBomb ? 1000 : 1500 + Math.random() * 800),
+        maxStay: isGolden ? 6000 : (isBomb ? 2000 : 10000),
       });
 
       // Speak the word when mole appears
