@@ -1,0 +1,2009 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>小蝌蚪找妈妈 - Learn English</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+      background: linear-gradient(180deg, #87CEEB 0%, #1a6b8a 40%, #0d3d52 100%);
+      font-family: 'Courier New', monospace;
+      user-select: none;
+    }
+
+    /* ---- Header ---- */
+    .header {
+      text-align: center;
+      padding: 6px 0 2px;
+      flex-shrink: 0;
+    }
+
+    .header h1 {
+      color: #fff;
+      font-size: 1.6rem;
+      text-shadow: 2px 2px 0 #0d3d52, 3px 3px 0 #000;
+      letter-spacing: 3px;
+      line-height: 1.3;
+    }
+
+    .header .subtitle {
+      color: #a0e8ff;
+      font-size: 0.7rem;
+      letter-spacing: 2px;
+      text-shadow: 1px 1px 0 #000;
+    }
+
+    /* ---- Main Layout: Left (canvas) + Right (controls) ---- */
+    .main-layout {
+      display: flex;
+      flex: 1;
+      gap: 16px;
+      align-items: center;
+      justify-content: center;
+      padding: 4px 16px 8px;
+      min-height: 0;
+    }
+
+    .canvas-wrapper {
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #gameCanvas {
+      border: 3px solid #2d5a2d;
+      border-radius: 10px;
+      box-shadow: 0 0 25px rgba(0,0,0,0.35);
+    }
+
+    /* ---- Right Panel ---- */
+    .right-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      align-items: center;
+      width: 160px;
+      flex-shrink: 0;
+    }
+
+    .stat-row {
+      display: flex;
+      gap: 8px;
+      width: 100%;
+    }
+
+    .stat-item {
+      flex: 1;
+      background: rgba(0,0,0,0.3);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 10px;
+      padding: 6px 8px;
+      text-align: center;
+      color: #ccc;
+      font-size: 0.7rem;
+    }
+
+    .stat-item b {
+      display: block;
+      font-size: 1.2rem;
+      color: #ffd700;
+      margin-top: 1px;
+    }
+
+    .stat-item .label {
+      color: #aaa;
+      font-size: 0.6rem;
+      letter-spacing: 1px;
+    }
+
+    .speech-toggle {
+      cursor: pointer;
+      transition: all 0.3s;
+      background: rgba(0,0,0,0.3);
+      border: 1px solid rgba(255,255,255,0.2);
+      color: #ccc;
+      padding: 4px 12px;
+      border-radius: 16px;
+      font-size: 0.75rem;
+    }
+    .speech-toggle.on {
+      border-color: #00d2ff;
+      color: #00d2ff;
+      background: rgba(0,210,255,0.2);
+      box-shadow: 0 0 8px rgba(0,210,255,0.15);
+    }
+
+    .level-group {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      width: 100%;
+    }
+
+    .level-group button {
+      background: rgba(0,0,0,0.3);
+      border: 2px solid rgba(255,255,255,0.2);
+      color: #ccc;
+      padding: 6px 10px;
+      border-radius: 16px;
+      cursor: pointer;
+      font-family: 'Courier New', monospace;
+      font-size: 0.7rem;
+      transition: all 0.3s;
+      text-shadow: 1px 1px 0 #000;
+      text-align: center;
+    }
+
+    .level-group button:hover {
+      border-color: #ffd700;
+      color: #ffd700;
+      background: rgba(255,215,0,0.12);
+    }
+
+    .level-group button.active {
+      background: rgba(255,215,0,0.2);
+      border-color: #ffd700;
+      color: #ffd700;
+      box-shadow: 0 0 10px rgba(255,215,0,0.2);
+    }
+
+    .btn {
+      background: rgba(0,0,0,0.3);
+      border: 2px solid rgba(255,255,255,0.25);
+      color: #ccc;
+      padding: 7px 16px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-family: 'Courier New', monospace;
+      font-size: 0.75rem;
+      transition: all 0.3s;
+      width: 100%;
+      text-align: center;
+      letter-spacing: 1px;
+    }
+
+    .btn:hover {
+      background: rgba(76,175,80,0.2);
+      border-color: #4CAF50;
+      color: #4CAF50;
+    }
+
+    .btn.highlight {
+      background: rgba(76,175,80,0.25);
+      border-color: #4CAF50;
+      color: #4CAF50;
+      animation: btnGlow 1.5s ease-in-out infinite;
+    }
+
+    @keyframes btnGlow {
+      0%, 100% { box-shadow: 0 0 5px rgba(76,175,80,0.3); }
+      50% { box-shadow: 0 0 20px rgba(76,175,80,0.5); }
+    }
+
+    /* Touch D-pad */
+    .touch-controls {
+      display: none;
+    }
+
+    .dpad {
+      display: grid;
+      grid-template-areas:
+        ". up ."
+        "left . right"
+        ". down .";
+      gap: 4px;
+    }
+
+    .dpad button {
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      border: 2px solid rgba(255,255,255,0.3);
+      background: rgba(0,0,0,0.3);
+      color: #fff;
+      font-size: 1.2rem;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+    }
+
+    .dpad button:active {
+      background: rgba(76,175,80,0.3);
+      border-color: #4CAF50;
+    }
+
+    .dpad .up { grid-area: up; }
+    .dpad .down { grid-area: down; }
+    .dpad .left { grid-area: left; }
+    .dpad .right { grid-area: right; }
+
+    /* Overlay */
+    #overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.65);
+      z-index: 100;
+      justify-content: center;
+      align-items: center;
+    }
+    #overlay.show { display: flex; }
+
+    #msgBox {
+      background: #1a1a2e;
+      border: 4px solid #ffd700;
+      border-radius: 20px;
+      padding: 24px 36px;
+      text-align: center;
+      box-shadow: 0 0 60px rgba(255,215,0,0.3);
+      animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      max-width: 90vw;
+    }
+
+    @keyframes popIn {
+      0% { transform: scale(0.5); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    #msgBox h2 { font-size: 1.6rem; margin-bottom: 4px; color: #fff; }
+    #msgBox .big-emoji { font-size: 2.5rem; display: block; margin-bottom: 6px; }
+    #msgBox .stat { color: #aaa; font-size: 0.8rem; margin: 3px 0; }
+    #msgBox .stat span { color: #ffd700; }
+    #msgBox .stars-big { font-size: 2rem; margin: 6px 0; letter-spacing: 4px; }
+    #msgBox .collected-words { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; max-width: 280px; }
+    #msgBox .word-pill { background: rgba(255,215,0,0.15); border: 1px solid rgba(255,215,0,0.3); border-radius: 10px; padding: 3px 10px; color: #ffd700; font-size: 0.8rem; }
+
+    /* Mobile: stack vertically */
+    @media (max-width: 700px) {
+      .main-layout { flex-direction: column; gap: 8px; padding: 4px 8px; }
+      .right-panel { flex-direction: row; flex-wrap: wrap; width: auto; gap: 6px; justify-content: center; }
+      .right-panel > * { width: auto; flex-shrink: 0; }
+      .stat-row { width: auto; }
+      .stat-item { min-width: 60px; }
+      .level-group { flex-direction: row; gap: 4px; }
+      .level-group button { padding: 5px 8px; font-size: 0.65rem; }
+      .btn { width: auto; padding: 6px 14px; font-size: 0.7rem; }
+      .header h1 { font-size: 1.2rem; }
+      .touch-controls { display: block; }
+    }
+
+    @media (hover: none) and (pointer: coarse) {
+      .touch-controls { display: block; }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>🐸 小蝌蚪找妈妈</h1>
+    <p class="subtitle">Little Tadpole · Learn English Words</p>
+  </div>
+
+  <div class="main-layout">
+    <div class="canvas-wrapper">
+      <canvas id="gameCanvas"></canvas>
+    </div>
+
+    <div class="right-panel">
+      <div class="stat-row">
+        <div class="stat-item">
+          <span class="label">🕹 步数</span>
+          <b id="moves">0</b>
+        </div>
+        <div class="stat-item">
+          <span class="label">💎 单词</span>
+          <b id="wordCount">0/3</b>
+        </div>
+      </div>
+
+      <span class="speech-toggle on" id="speechToggle" title="语音播报开关">🔊 语音</span>
+
+      <div class="level-group">
+        <button class="active" data-level="easy">🌟 简单 7×7</button>
+        <button data-level="medium">⭐⭐ 中等 9×9</button>
+        <button data-level="hard">⭐⭐⭐ 困难 11×11</button>
+        <button data-level="veryHard">👑 超难 15×15</button>
+      </div>
+
+      <button class="btn highlight" id="btnStart">▶ 开始游戏</button>
+      <button class="btn" id="btnRestart" style="display:none;">🔁 重新开始</button>
+
+      <div class="touch-controls" id="touchControls">
+        <div class="dpad">
+          <button class="up" id="btnUp">▲</button>
+          <button class="left" id="btnLeft">◀</button>
+          <button class="right" id="btnRight">▶</button>
+          <button class="down" id="btnDown">▼</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="overlay">
+    <div id="msgBox">
+      <span class="big-emoji" id="winEmoji">🐸</span>
+      <h2 id="winTitle">找到妈妈啦！</h2>
+      <div class="stars-big" id="winStars">⭐⭐⭐</div>
+      <p class="stat">🕹 步数: <span id="winMoves">0</span></p>
+      <p class="stat">💎 学到的单词:</p>
+      <div class="collected-words" id="winWords"></div>
+      <button class="btn highlight" id="btnPlayAgain" style="margin-top:14px;">🔁 再来一次</button>
+    </div>
+  </div>
+
+  <script src="words.js"></script>
+  <script>
+    // ==================== CONSTANTS & CONFIG ====================
+    // TILE size calculated dynamically based on grid size and viewport
+    let TILE = 48;
+
+    function calcTileSize(gridSize) {
+      // Available space: viewport minus header (~55px), right panel (~170px), gaps
+      var availW = window.innerWidth - 200;
+      var availH = window.innerHeight - 80;
+      var maxDim = Math.min(availW, availH);
+      return Math.max(28, Math.floor(maxDim / gridSize));
+    }
+
+    const LEVELS = {
+      easy:      { gridSize: 7,  wordCount: 3, label: '简单', prune: true },
+      medium:    { gridSize: 9,  wordCount: 5, label: '中等', prune: true },
+      hard:      { gridSize: 11, wordCount: 7, label: '困难', prune: true },
+      veryHard:  { gridSize: 15, wordCount: 9, label: '超难', prune: false },
+    };
+
+    const COLORS = {
+      waterTop:    '#1a6b8a',
+      waterBottom: '#0d3d52',
+      path:        '#c4a86a',
+      pathDark:    '#a8894a',
+      pathLight:   '#dcc89e',
+      wallGreen:   '#3d7a3d',
+      wallDark:    '#2d5a2d',
+      wallLeaf:    '#4a9e4a',
+      lotus:       '#f0a0b0',
+      pearl:       '#ffd700',
+      pearlGlow:   '#fff8dc',
+      pearlDone:   '#5a6a5a',
+      tadpoleBody: '#2d2d2d',
+      tadpoleBelly:'#5a5a5a',
+      frogBody:    '#4a9e2a',
+      frogBelly:   '#8ec96a',
+      crown:       '#ffd700',
+      bubble:      'rgba(255,255,255,0.25)',
+      bubbleEdge:  'rgba(255,255,255,0.5)',
+    };
+
+    // ==================== DOM REFS ====================
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+
+    // ==================== AUDIO ====================
+    let audioCtx = null;
+    function getAudioCtx() {
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      return audioCtx;
+    }
+
+    function playTone(freq, duration, type = 'sine', vol = 0.06, delay = 0) {
+      try {
+        const ctx = getAudioCtx();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, ctx.currentTime + delay);
+        gain.gain.setValueAtTime(vol, ctx.currentTime + delay);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + delay + duration);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(ctx.currentTime + delay);
+        osc.stop(ctx.currentTime + delay + duration);
+      } catch (e) { /* not available */ }
+    }
+
+    function sfxMove() { playTone(400, 0.05, 'sine', 0.03); }
+    function sfxBump() { playTone(150, 0.15, 'triangle', 0.04); }
+
+    function sfxWordCollect() {
+      getAudioCtx();
+      [523, 659, 784].forEach((f, i) => setTimeout(() => playTone(f, 0.15, 'sine', 0.06), i * 80));
+    }
+
+    function sfxWin() {
+      getAudioCtx();
+      [523, 659, 784, 1047].forEach((f, i) => setTimeout(() => playTone(f, 0.3, 'sine', 0.06), i * 120));
+    }
+
+    function sfxCoin() {
+      getAudioCtx();
+      [784, 1047, 1319, 1568].forEach((f, i) => setTimeout(() => playTone(f, 0.2, 'sine', 0.07), i * 80));
+    }
+
+    // ==================== SPEECH ====================
+    let speechEnabled = true;
+
+    function speakWord(word) {
+      if (!speechEnabled) return;
+      if (!('speechSynthesis' in window)) return;
+      try {
+        window.speechSynthesis.cancel();
+        const utterEn = new SpeechSynthesisUtterance(word);
+        utterEn.lang = 'en-US';
+        utterEn.rate = 0.8;
+        utterEn.pitch = 1.1;
+        utterEn.volume = 0.7;
+        window.speechSynthesis.speak(utterEn);
+
+        const cn = WORD_CN[word];
+        if (cn) {
+          utterEn.onend = () => {
+            const utterCn = new SpeechSynthesisUtterance(cn);
+            utterCn.lang = 'zh-CN';
+            utterCn.rate = 0.85;
+            utterCn.pitch = 1.0;
+            utterCn.volume = 0.7;
+            window.speechSynthesis.speak(utterCn);
+          };
+        }
+      } catch (e) { /* not available */ }
+    }
+
+    // ==================== GAME STATE ====================
+    let currentLevel = 'easy';
+    let COLS, ROWS;
+    let maze = [];
+    let player = { x: 1, y: 1 };
+    let exit = { x: 0, y: 0 };
+    let wordPearls = []; // { x, y, wordObj, collected }
+    let collectedWords = [];
+    let goldCoin = null; // { x, y, collected }
+    let moves = 0;
+    let won = false;
+    let gameStarted = false;
+    let inputLocked = false;
+
+    // Quiz state
+    let quizState = null;
+
+    // Win animation state
+    let winAnimState = null; // { phase: 'coinFly'|'frogJump'|'shine'|'done', startTime, coinX, coinY }
+    let sparkles = []; // [{ x, y, vx, vy, life, size, color }]
+
+    // Bubble particles
+    let bubbles = [];
+
+    function setGridSize(size) {
+      COLS = size;
+      ROWS = size;
+      TILE = calcTileSize(size);
+      const dpr = window.devicePixelRatio || 1;
+      const displayW = COLS * TILE;
+      const displayH = ROWS * TILE;
+      canvas.width = displayW * dpr;
+      canvas.height = displayH * dpr;
+      canvas.style.width = displayW + 'px';
+      canvas.style.height = displayH + 'px';
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+
+    // ==================== MAZE GENERATION ====================
+    function shuffle(arr) {
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    }
+
+    function generateMaze() {
+      // Fill with walls
+      maze = [];
+      for (let y = 0; y < ROWS; y++) {
+        maze[y] = [];
+        for (let x = 0; x < COLS; x++) {
+          maze[y][x] = 1;
+        }
+      }
+
+      const stack = [];
+      const startX = 1, startY = 1;
+      maze[startY][startX] = 0;
+      stack.push({ x: startX, y: startY });
+
+      const directions = [
+        { dx: 0, dy: -2 }, // up
+        { dx: 0, dy: 2 },  // down
+        { dx: -2, dy: 0 }, // left
+        { dx: 2, dy: 0 },  // right
+      ];
+
+      while (stack.length > 0) {
+        const current = stack[stack.length - 1];
+        const shuffled = shuffle([...directions]);
+        let carved = false;
+
+        for (const dir of shuffled) {
+          const nx = current.x + dir.dx;
+          const ny = current.y + dir.dy;
+          if (nx > 0 && nx < COLS - 1 && ny > 0 && ny < ROWS - 1 && maze[ny][nx] === 1) {
+            maze[ny][nx] = 0;
+            maze[current.y + dir.dy / 2][current.x + dir.dx / 2] = 0;
+            stack.push({ x: nx, y: ny });
+            carved = true;
+            break;
+          }
+        }
+
+        if (!carved) stack.pop();
+      }
+
+      // Set exit at bottom-right
+      exit.x = COLS - 2;
+      exit.y = ROWS - 2;
+      maze[exit.y][exit.x] = 0;
+    }
+
+    function getProtectedCells() {
+      // Get the shortest path from start to exit, these cells must NEVER be pruned
+      const start = { x: 1, y: 1 };
+      const path = bfs(start, exit);
+      if (path.length === 0) return new Set(); // no path, shouldn't happen
+      const protected = new Set();
+      path.forEach(p => protected.add(`${p.x},${p.y}`));
+      return protected;
+    }
+
+    function pruneDeadEnds(protectedCells) {
+      // Walk from each dead-end cell toward the junction, fill short dead ends
+      // that are NOT on the protected path
+      const dirs = [[0,-1],[0,1],[-1,0],[1,0]];
+      let changed = true;
+
+      while (changed) {
+        changed = false;
+        for (let y = 1; y < ROWS - 1; y++) {
+          for (let x = 1; x < COLS - 1; x++) {
+            if (maze[y][x] !== 0) continue;
+            const key = `${x},${y}`;
+            if (protectedCells.has(key)) continue;
+
+            // Count passable neighbors
+            const passable = dirs.filter(([dx,dy]) => {
+              const nx = x + dx, ny = y + dy;
+              return nx >= 0 && nx < COLS && ny >= 0 && ny < ROWS && maze[ny][nx] === 0;
+            }).length;
+
+            // Dead end: exactly 1 passable neighbor
+            if (passable !== 1) continue;
+
+            // Trace the dead-end corridor
+            const cells = [{ x, y }];
+            let cx = x, cy = y;
+            let px = -1, py = -1;
+            let hitProtected = false;
+            let hitJunction = false;
+
+            for (let step = 0; step < 4; step++) {
+              let nextX = -1, nextY = -1;
+              let found = 0;
+              for (const [dx, dy] of dirs) {
+                const nx = cx + dx, ny = cy + dy;
+                if (nx === px && ny === py) continue;
+                if (nx >= 0 && nx < COLS && ny >= 0 && ny < ROWS && maze[ny][nx] === 0) {
+                  nextX = nx; nextY = ny;
+                  found++;
+                }
+              }
+              if (found !== 1) {
+                if (found >= 2) hitJunction = true;
+                break;
+              }
+
+              // Check if next cell is protected
+              const nk = `${nextX},${nextY}`;
+              if (protectedCells.has(nk)) {
+                hitProtected = true;
+                break;
+              }
+
+              cells.push({ x: nextX, y: nextY });
+              px = cx; py = cy;
+              cx = nextX; cy = nextY;
+            }
+
+            // Only prune if: short (< 3 cells), didn't hit protected path, didn't hit junction
+            if (cells.length < 3 && !hitProtected && hitJunction) {
+              cells.forEach(c => { maze[c.y][c.x] = 1; });
+              changed = true;
+            }
+          }
+        }
+      }
+    }
+
+    function bfs(start, end) {
+      const queue = [{ x: start.x, y: start.y, path: [start] }];
+      const visited = new Set();
+      visited.add(`${start.x},${start.y}`);
+
+      while (queue.length > 0) {
+        const { x, y, path } = queue.shift();
+        if (x === end.x && y === end.y) return path;
+
+        const dirs = [[0,-1],[0,1],[-1,0],[1,0]];
+        for (const [dx, dy] of dirs) {
+          const nx = x + dx, ny = y + dy;
+          const key = `${nx},${ny}`;
+          if (nx >= 0 && nx < COLS && ny >= 0 && ny < ROWS && maze[ny][nx] === 0 && !visited.has(key)) {
+            visited.add(key);
+            queue.push({ x: nx, y: ny, path: [...path, { x: nx, y: ny }] });
+          }
+        }
+      }
+      return [];
+    }
+
+    function placeItems() {
+      const start = { x: 1, y: 1 };
+      const shortestPath = bfs(start, exit);
+      const candidates = shortestPath.slice(1, -1); // exclude start and exit
+      wordPearls = [];
+      goldCoin = null;
+
+      if (candidates.length === 0) return;
+
+      const level = LEVELS[currentLevel];
+      const count = level.wordCount;
+
+      // Place word pearls on the first portion of the path
+      const pearlEnd = Math.floor(candidates.length * 0.7);
+      const pearlZone = candidates.slice(0, pearlEnd);
+      const coinZone = candidates.slice(pearlEnd);
+
+      const step = Math.max(1, Math.floor(pearlZone.length / (count + 1)));
+      const usedWords = new Set();
+
+      for (let i = step; i < pearlZone.length && wordPearls.length < count; i += step) {
+        const available = WORD_POOL.filter(w => !usedWords.has(w.en));
+        if (available.length === 0) break;
+        const wordObj = available[Math.floor(Math.random() * available.length)];
+        usedWords.add(wordObj.en);
+        wordPearls.push({
+          x: pearlZone[i].x,
+          y: pearlZone[i].y,
+          wordObj: wordObj,
+          collected: false,
+        });
+      }
+
+      // Place gold coin on the path segment between last pearl and exit
+      if (coinZone.length > 1) {
+        const coinIdx = Math.floor(coinZone.length / 2);
+        goldCoin = { x: coinZone[coinIdx].x, y: coinZone[coinIdx].y, collected: false };
+      } else if (coinZone.length === 1) {
+        goldCoin = { x: coinZone[0].x, y: coinZone[0].y, collected: false };
+      }
+    }
+
+    // ==================== BUBBLES ====================
+    function spawnBubbles() {
+      bubbles = [];
+      for (let i = 0; i < 10; i++) {
+        bubbles.push({
+          x: Math.random() * COLS * TILE,
+          y: Math.random() * ROWS * TILE,
+          radius: 3 + Math.random() * 6,
+          speed: 0.2 + Math.random() * 0.5,
+          drift: Math.sin(Math.random() * Math.PI * 2) * 0.3,
+          phase: Math.random() * Math.PI * 2,
+        });
+      }
+    }
+
+    function updateBubbles(dt) {
+      for (const b of bubbles) {
+        b.y -= b.speed * (dt / 16);
+        b.x += Math.sin(Date.now() / 2000 + b.phase) * b.drift;
+        if (b.y < -10) {
+          b.y = ROWS * TILE + 10;
+          b.x = Math.random() * COLS * TILE;
+        }
+      }
+    }
+
+    // ==================== SPARKLE PARTICLES ====================
+    function spawnSparkles(x, y, count, color, spread) {
+      for (var i = 0; i < count; i++) {
+        var angle = Math.random() * Math.PI * 2;
+        var speed = 1 + Math.random() * (spread || 4);
+        sparkles.push({
+          x: x, y: y,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed - 2,
+          life: 1,
+          decay: 0.015 + Math.random() * 0.03,
+          size: 2 + Math.random() * 4,
+          color: color,
+        });
+      }
+    }
+
+    function updateSparkles() {
+      for (var i = sparkles.length - 1; i >= 0; i--) {
+        var s = sparkles[i];
+        s.x += s.vx;
+        s.y += s.vy;
+        s.vy += 0.08;
+        s.life -= s.decay;
+        if (s.life <= 0) sparkles.splice(i, 1);
+      }
+    }
+
+    function drawSparkles() {
+      for (var i = 0; i < sparkles.length; i++) {
+        var s = sparkles[i];
+        ctx.save();
+        ctx.globalAlpha = s.life;
+        ctx.fillStyle = s.color;
+        ctx.beginPath();
+        ctx.arc(s.x, s.y, s.size, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+    }
+
+    // ==================== DRAWING ====================
+    function drawBackground() {
+      // Water gradient
+      const grad = ctx.createLinearGradient(0, 0, 0, ROWS * TILE);
+      grad.addColorStop(0, '#1a8aaa');
+      grad.addColorStop(0.5, '#1a6b8a');
+      grad.addColorStop(1, '#0d3d52');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, COLS * TILE, ROWS * TILE);
+
+      // Light rays
+      const now = Date.now();
+      for (let i = 0; i < 3; i++) {
+        const rx = (i * COLS * TILE / 3) + 40;
+        const alpha = 0.03 + Math.sin(now / 3000 + i) * 0.02;
+        ctx.fillStyle = `rgba(255, 255, 200, ${alpha})`;
+        ctx.beginPath();
+        ctx.moveTo(rx - 30, 0);
+        ctx.lineTo(rx + 30, 0);
+        ctx.lineTo(rx + 100, ROWS * TILE);
+        ctx.lineTo(rx - 100, ROWS * TILE);
+        ctx.closePath();
+        ctx.fill();
+      }
+    }
+
+    function drawBubbles() {
+      for (const b of bubbles) {
+        ctx.strokeStyle = COLORS.bubbleEdge;
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.arc(b.x, b.y, b.radius, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.fillStyle = COLORS.bubble;
+        ctx.fill();
+        // Shine
+        ctx.fillStyle = 'rgba(255,255,255,0.4)';
+        ctx.beginPath();
+        ctx.arc(b.x - b.radius * 0.3, b.y - b.radius * 0.3, b.radius * 0.25, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    function drawTile(x, y) {
+      const px = x * TILE, py = y * TILE;
+      ctx.fillStyle = COLORS.path;
+      ctx.fillRect(px + 2, py + 2, TILE - 4, TILE - 4);
+      ctx.fillStyle = COLORS.pathDark;
+      ctx.fillRect(px + 2, py + TILE - 6, TILE - 4, 4);
+      ctx.fillStyle = COLORS.pathLight;
+      ctx.fillRect(px + 2, py + 2, TILE - 4, 2);
+    }
+
+    function drawWall(x, y) {
+      const px = x * TILE, py = y * TILE;
+      const cx = px + TILE / 2, cy = py + TILE / 2;
+      const r = TILE / 2 - 2;
+
+      // Lily pad base
+      ctx.fillStyle = COLORS.wallGreen;
+      ctx.beginPath();
+      ctx.arc(cx, cy, r, 0, Math.PI * 1.8);
+      ctx.lineTo(cx, cy);
+      ctx.closePath();
+      ctx.fill();
+
+      // Dark edge
+      ctx.strokeStyle = COLORS.wallDark;
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      // Leaf highlight
+      ctx.fillStyle = COLORS.wallLeaf;
+      ctx.beginPath();
+      ctx.arc(cx, cy, r - 4, 0, Math.PI * 1.4);
+      ctx.lineTo(cx, cy);
+      ctx.closePath();
+      ctx.fill();
+
+      // Small lotus flower on some walls
+      if ((x * 7 + y * 13) % 3 === 0) {
+        const lx = cx + (x % 2 ? 6 : -6);
+        const ly = cy + (y % 2 ? 4 : -4);
+        ctx.fillStyle = COLORS.lotus;
+        for (let i = 0; i < 5; i++) {
+          const angle = (i / 5) * Math.PI * 2;
+          ctx.beginPath();
+          ctx.arc(lx + Math.cos(angle) * 6, ly + Math.sin(angle) * 6, 4, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        ctx.fillStyle = '#ffd700';
+        ctx.beginPath();
+        ctx.arc(lx, ly, 3, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    function drawTadpole(x, y) {
+      const px = x * TILE + TILE / 2;
+      const py = y * TILE + TILE / 2;
+      const now = Date.now();
+
+      // Bobby animation
+      const bob = Math.sin(now / 300) * 1.5;
+
+      // Tail wiggle
+      const tailWag = Math.sin(now / 150) * 4;
+
+      ctx.save();
+      ctx.translate(px, py + bob);
+
+      // Tail
+      ctx.fillStyle = COLORS.tadpoleBody;
+      ctx.beginPath();
+      ctx.moveTo(-6, 0);
+      ctx.quadraticCurveTo(-14, -8 + tailWag, -20, -2 + tailWag * 2);
+      ctx.quadraticCurveTo(-16, 4 + tailWag, -12, 6 - tailWag);
+      ctx.quadraticCurveTo(-8, 4, -6, 0);
+      ctx.fill();
+
+      // Body
+      const bodyGrad = ctx.createRadialGradient(-2, -3, 1, 0, 0, 9);
+      bodyGrad.addColorStop(0, '#4a4a4a');
+      bodyGrad.addColorStop(1, COLORS.tadpoleBody);
+      ctx.fillStyle = bodyGrad;
+      ctx.beginPath();
+      ctx.ellipse(0, 0, 9, 7, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Belly
+      ctx.fillStyle = COLORS.tadpoleBelly;
+      ctx.beginPath();
+      ctx.ellipse(1, 2, 5, 3.5, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Eyes
+      ctx.fillStyle = '#fff';
+      ctx.beginPath(); ctx.arc(-4, -3, 3.5, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.arc(5, -3, 3.5, 0, Math.PI * 2); ctx.fill();
+
+      // Pupils
+      ctx.fillStyle = '#1a1a1a';
+      ctx.beginPath(); ctx.arc(-3, -2, 2, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.arc(6, -2, 2, 0, Math.PI * 2); ctx.fill();
+
+      // Eye shine
+      ctx.fillStyle = '#fff';
+      ctx.beginPath(); ctx.arc(-4, -3, 1.2, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.arc(5, -3, 1.2, 0, Math.PI * 2); ctx.fill();
+
+      // Smile
+      ctx.strokeStyle = '#1a1a1a';
+      ctx.lineWidth = 0.8;
+      ctx.beginPath();
+      ctx.arc(1, 1, 4, 0.1, Math.PI * 0.6);
+      ctx.stroke();
+
+      ctx.restore();
+    }
+
+    function drawFrog(x, y) {
+      const px = x * TILE + TILE / 2;
+      const py = y * TILE + TILE / 2;
+      const now = Date.now();
+
+      // Blink every 3 seconds
+      const blinkPhase = (now % 3000) / 3000;
+      const blinking = blinkPhase < 0.08;
+
+      ctx.save();
+      ctx.translate(px, py);
+
+      // Back legs
+      ctx.fillStyle = COLORS.frogBody;
+      [-1, 1].forEach(side => {
+        ctx.beginPath();
+        ctx.ellipse(side * 12, 6, 8, 5, side * 0.3, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      // Body
+      const bodyGrad = ctx.createRadialGradient(0, -3, 2, 0, 0, 13);
+      bodyGrad.addColorStop(0, '#5fc43a');
+      bodyGrad.addColorStop(1, COLORS.frogBody);
+      ctx.fillStyle = bodyGrad;
+      ctx.beginPath();
+      ctx.ellipse(0, 0, 15, 12, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Belly
+      ctx.fillStyle = COLORS.frogBelly;
+      ctx.beginPath();
+      ctx.ellipse(0, 3, 10, 7, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Eyes
+      [-7, 7].forEach(sx => {
+        ctx.fillStyle = '#fff';
+        ctx.beginPath(); ctx.arc(sx, -10, 6, 0, Math.PI * 2); ctx.fill();
+
+        if (blinking) {
+          ctx.strokeStyle = '#1a1a1a';
+          ctx.lineWidth = 1.5;
+          ctx.beginPath();
+          ctx.moveTo(sx - 5, -10);
+          ctx.lineTo(sx + 5, -10);
+          ctx.stroke();
+        } else {
+          ctx.fillStyle = '#1a1a1a';
+          ctx.beginPath(); ctx.arc(sx + 1, -9, 3.5, 0, Math.PI * 2); ctx.fill();
+          ctx.fillStyle = '#fff';
+          ctx.beginPath(); ctx.arc(sx, -10, 1.5, 0, Math.PI * 2); ctx.fill();
+        }
+      });
+
+      // Wide smile
+      ctx.strokeStyle = '#1a1a1a';
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      ctx.arc(0, -1, 9, 0.15, Math.PI - 0.15);
+      ctx.stroke();
+
+      // Crown
+      ctx.fillStyle = COLORS.crown;
+      ctx.beginPath();
+      ctx.moveTo(-6, -16);
+      ctx.lineTo(-8, -24);
+      ctx.lineTo(-3, -20);
+      ctx.lineTo(0, -27);
+      ctx.lineTo(3, -20);
+      ctx.lineTo(8, -24);
+      ctx.lineTo(6, -16);
+      ctx.closePath();
+      ctx.fill();
+      // Crown jewels
+      ctx.fillStyle = '#ff4444';
+      ctx.beginPath(); ctx.arc(-3, -19, 2, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#4444ff';
+      ctx.beginPath(); ctx.arc(3, -19, 2, 0, Math.PI * 2); ctx.fill();
+
+      ctx.restore();
+    }
+
+    function drawWordPearl(pearl) {
+      const px = pearl.x * TILE + TILE / 2;
+      const py = pearl.y * TILE + TILE / 2;
+      const now = Date.now();
+
+      if (pearl.collected) {
+        // Dim pebble
+        ctx.fillStyle = COLORS.pearlDone;
+        ctx.beginPath();
+        ctx.arc(px, py, 6, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#7a8a7a';
+        ctx.beginPath();
+        ctx.arc(px, py, 3, 0, Math.PI * 2);
+        ctx.fill();
+      } else {
+        // Glow
+        const glowRadius = 15 + Math.sin(now / 400) * 3;
+        const glow = ctx.createRadialGradient(px, py, 3, px, py, glowRadius);
+        glow.addColorStop(0, 'rgba(255, 215, 0, 0.5)');
+        glow.addColorStop(0.5, 'rgba(255, 215, 0, 0.15)');
+        glow.addColorStop(1, 'rgba(255, 215, 0, 0)');
+        ctx.fillStyle = glow;
+        ctx.beginPath();
+        ctx.arc(px, py, glowRadius, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Pearl body
+        const pearlGrad = ctx.createRadialGradient(px - 2, py - 2, 1, px, py, 9);
+        pearlGrad.addColorStop(0, COLORS.pearlGlow);
+        pearlGrad.addColorStop(0.5, COLORS.pearl);
+        pearlGrad.addColorStop(1, '#b8960c');
+        ctx.fillStyle = pearlGrad;
+        ctx.beginPath();
+        ctx.arc(px, py, 9, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Star inside
+        ctx.fillStyle = '#fff';
+        ctx.font = '12px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('⭐', px, py);
+      }
+    }
+
+    function drawGoldCoin() {
+      if (!goldCoin || goldCoin.collected) return;
+      var px = goldCoin.x * TILE + TILE / 2;
+      var py = goldCoin.y * TILE + TILE / 2;
+      var now = Date.now();
+
+      // Spin animation (coin rotates via width oscillation)
+      var spin = Math.abs(Math.cos(now / 400));
+      var coinW = 16 * spin + 4;
+
+      // Outer glow
+      var glowR = 20 + Math.sin(now / 300) * 4;
+      var glow = ctx.createRadialGradient(px, py, 4, px, py, glowR);
+      glow.addColorStop(0, 'rgba(255, 215, 0, 0.6)');
+      glow.addColorStop(0.5, 'rgba(255, 180, 0, 0.2)');
+      glow.addColorStop(1, 'rgba(255, 215, 0, 0)');
+      ctx.fillStyle = glow;
+      ctx.beginPath();
+      ctx.arc(px, py, glowR, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Coin body
+      var coinGrad = ctx.createLinearGradient(px - coinW / 2, py, px + coinW / 2, py);
+      coinGrad.addColorStop(0, '#b8860b');
+      coinGrad.addColorStop(0.3, '#ffd700');
+      coinGrad.addColorStop(0.5, '#fff8dc');
+      coinGrad.addColorStop(0.7, '#ffd700');
+      coinGrad.addColorStop(1, '#b8860b');
+      ctx.fillStyle = coinGrad;
+      ctx.beginPath();
+      ctx.ellipse(px, py, coinW / 2, 13, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = '#8B6914';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+
+      // $ sign
+      if (spin > 0.4) {
+        ctx.fillStyle = '#8B6914';
+        ctx.font = 'bold 14px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('$', px, py + 1);
+      }
+
+      // Sparkle dots on coin edge
+      for (var i = 0; i < 3; i++) {
+        var a = (now / 600 + i * 2) % (Math.PI * 2);
+        var sx = px + Math.cos(a) * 12;
+        var sy = py + Math.sin(a) * 8;
+        ctx.fillStyle = '#fff';
+        ctx.beginPath();
+        ctx.arc(sx, sy, 2, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    function drawFrogCelebration() {
+      if (!winAnimState) return;
+      var s = winAnimState;
+      var elapsed = Date.now() - s.startTime;
+
+      // Helper: draw frog at (x, y) with given scale
+      function drawFrogAt(x, y, scale, eyeType, eyeExtra) {
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.scale(scale, scale);
+
+        // Frog body
+        ctx.fillStyle = COLORS.frogBody;
+        ctx.beginPath(); ctx.ellipse(0, 2, 18, 14, 0, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = COLORS.frogBelly;
+        ctx.beginPath(); ctx.ellipse(0, 5, 12, 8, 0, 0, Math.PI * 2); ctx.fill();
+
+        [-9, 9].forEach(function(sx) {
+          if (eyeType === 'normal') {
+            // Normal happy eyes
+            ctx.fillStyle = '#fff';
+            ctx.beginPath(); ctx.arc(sx, -11, 8, 0, Math.PI * 2); ctx.fill();
+            ctx.fillStyle = '#1a1a1a';
+            ctx.beginPath(); ctx.arc(sx + 1, -10, 4.5, 0, Math.PI * 2); ctx.fill();
+            ctx.fillStyle = '#fff';
+            ctx.beginPath(); ctx.arc(sx - 1.5, -13, 2.5, 0, Math.PI * 2); ctx.fill();
+          } else if (eyeType === 'star') {
+            var twinkle = eyeExtra.twinkle;
+            var starOuterR = eyeExtra.starOuterR;
+            var starInnerR = eyeExtra.starInnerR;
+
+            // Halo
+            var haloGrad = ctx.createRadialGradient(sx, -11, starInnerR, sx, -11, starOuterR + 14);
+            haloGrad.addColorStop(0, 'rgba(255,255,255,' + (0.9 + twinkle * 0.1) + ')');
+            haloGrad.addColorStop(0.3, 'rgba(255,255,200,0.6)');
+            haloGrad.addColorStop(0.6, 'rgba(255,215,0,0.2)');
+            haloGrad.addColorStop(1, 'rgba(255,215,0,0)');
+            ctx.fillStyle = haloGrad;
+            ctx.beginPath(); ctx.arc(sx, -11, starOuterR + 14, 0, Math.PI * 2); ctx.fill();
+
+            // Star eye
+            ctx.save();
+            ctx.translate(sx, -11);
+            ctx.rotate(elapsed / 800);
+            var starGrad = ctx.createRadialGradient(0, 0, 0, 0, 0, starOuterR);
+            starGrad.addColorStop(0, 'rgba(255,255,255,1)');
+            starGrad.addColorStop(0.4, 'rgba(255,255,200,0.95)');
+            starGrad.addColorStop(0.7, 'rgba(255,215,0,0.7)');
+            starGrad.addColorStop(1, 'rgba(255,200,0,0.3)');
+            ctx.fillStyle = starGrad;
+            ctx.beginPath();
+            var pts = 4;
+            for (var i = 0; i < pts * 2; i++) {
+              var r = i % 2 === 0 ? starOuterR : starInnerR;
+              var angle = (i * Math.PI) / pts - Math.PI / 2;
+              if (i === 0) ctx.moveTo(Math.cos(angle) * r, Math.sin(angle) * r);
+              else ctx.lineTo(Math.cos(angle) * r, Math.sin(angle) * r);
+            }
+            ctx.closePath(); ctx.fill();
+            ctx.strokeStyle = 'rgba(255,255,255,' + (0.8 + twinkle * 0.2) + ')';
+            ctx.lineWidth = 1.5; ctx.stroke();
+            ctx.fillStyle = '#fff';
+            ctx.beginPath(); ctx.arc(0, 0, starInnerR * 0.4, 0, Math.PI * 2); ctx.fill();
+            ctx.restore();
+
+            // Orbiting mini stars
+            for (var si = 0; si < 3; si++) {
+              var sa = elapsed / 600 + si * 2.1;
+              var sd = 16 + Math.sin(sa * 1.7) * 5;
+              var sx2 = sx + Math.cos(sa) * sd;
+              var sy2 = -11 + Math.sin(sa) * sd - 4;
+              var ss = 2 + Math.abs(Math.sin(sa * 3)) * 2;
+              ctx.fillStyle = 'rgba(255,255,200,' + (0.4 + Math.abs(Math.sin(sa * 2)) * 0.4) + ')';
+              ctx.beginPath();
+              for (var j = 0; j < 8; j++) {
+                var sr = j % 2 === 0 ? ss : ss * 0.4;
+                var sa2 = (j * Math.PI) / 4 - Math.PI / 2;
+                if (j === 0) ctx.moveTo(sx2 + Math.cos(sa2) * sr, sy2 + Math.sin(sa2) * sr);
+                else ctx.lineTo(sx2 + Math.cos(sa2) * sr, sy2 + Math.sin(sa2) * sr);
+              }
+              ctx.closePath(); ctx.fill();
+            }
+          }
+        });
+
+        // Smile
+        ctx.strokeStyle = '#1a1a1a';
+        ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.arc(0, -1, 11, 0.15, Math.PI - 0.15); ctx.stroke();
+
+        // Crown
+        ctx.fillStyle = COLORS.crown;
+        ctx.beginPath();
+        ctx.moveTo(-8, -18); ctx.lineTo(-10, -28); ctx.lineTo(-4, -23);
+        ctx.lineTo(0, -32); ctx.lineTo(4, -23);
+        ctx.lineTo(10, -28); ctx.lineTo(8, -18);
+        ctx.closePath(); ctx.fill();
+
+        ctx.restore();
+      }
+
+      // ==================== PHASE 1: Jump to Center ====================
+      if (s.phase === 'frogJumpToCenter') {
+        var totalDur = 1400;
+        var prog = Math.min(1, elapsed / totalDur);
+        var ex = s.exitX, ey = s.exitY;
+        var cx = s.centerX, cy = s.centerY;
+
+        var x, y, scale, eyeType, eyeExtra;
+
+        if (prog < 0.35) {
+          // Stage 1: excited bounces at exit position
+          var bp = prog / 0.35;
+          var bounceY = -50 * Math.sin(bp * Math.PI * 2);
+          x = ex;
+          y = ey + bounceY;
+          scale = 1 + bp * 0.2;
+          eyeType = 'normal';
+          eyeExtra = null;
+          if (Math.random() < 0.3 && bounceY < -15) spawnSparkles(ex, ey + bounceY, 2, '#ffd700', 2);
+        } else if (prog < 0.75) {
+          // Stage 2: leap to center with arc
+          var lp = (prog - 0.35) / 0.4;
+          x = ex + (cx - ex) * lp;
+          // Parabolic arc
+          var arcY = -120 * Math.sin(lp * Math.PI);
+          y = ey + (cy - ey) * lp + arcY;
+          scale = 1 + lp * 0.8; // grow to 1.8x
+          eyeType = 'normal';
+          eyeExtra = null;
+          // Trail particles
+          if (Math.random() < 0.6) spawnSparkles(x, y, 2, '#ffd700', 3);
+        } else {
+          // Stage 3: settle at center with small bounce
+          var sp = (prog - 0.75) / 0.25;
+          var settleBounce = -15 * Math.sin(sp * Math.PI * 1.5) * (1 - sp);
+          x = cx;
+          y = cy + settleBounce;
+          scale = 1.8 - sp * 0.05;
+          eyeType = 'normal';
+          eyeExtra = null;
+        }
+
+        drawFrogAt(x, y, scale, eyeType, eyeExtra);
+
+        // Transition
+        if (elapsed > totalDur) {
+          s.phase = 'eyeShine';
+          s.startTime = Date.now();
+          spawnSparkles(cx, cy - 20, 40, '#fffbe6', 8);
+        }
+      }
+
+      // ==================== PHASE 2: Eye Shine at Center (DRAMATIC) ====================
+      if (s.phase === 'eyeShine') {
+        var shineDur = 2000;
+        var se = Date.now() - s.startTime;
+        var cx = s.centerX, cy = s.centerY;
+        var scale = 1.8;
+
+        // Colorful lights as RGBA arrays
+        var beamRGB = [
+          [255,68,68], [255,136,0], [255,215,0], [68,255,68],
+          [0,204,255], [68,136,255], [204,68,255], [255,68,170]
+        ];
+
+        // === Background color wash ===
+        var washAlpha = 0.06 + 0.04 * Math.sin(se / 600);
+        var washGrad = ctx.createRadialGradient(cx, cy, 20, cx, cy, COLS * TILE * 0.8);
+        washGrad.addColorStop(0, 'rgba(255,255,200,' + (washAlpha * 2) + ')');
+        washGrad.addColorStop(0.4, 'rgba(255,180,0,' + washAlpha + ')');
+        washGrad.addColorStop(0.7, 'rgba(200,100,255,' + (washAlpha * 0.5) + ')');
+        washGrad.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.fillStyle = washGrad;
+        ctx.beginPath(); ctx.arc(cx, cy, COLS * TILE * 0.8, 0, Math.PI * 2); ctx.fill();
+
+        // === Big expanding golden ring waves ===
+        for (var ring = 0; ring < 3; ring++) {
+          var ringPhase = ((se / 1500 + ring * 0.33) % 1);
+          var ringR = 40 + ringPhase * 200;
+          var ringAlpha = (1 - ringPhase) * 0.5;
+          ctx.strokeStyle = 'rgba(255,215,0,' + ringAlpha + ')';
+          ctx.lineWidth = 4 * (1 - ringPhase);
+          ctx.beginPath(); ctx.arc(cx, cy - 10, ringR, 0, Math.PI * 2); ctx.stroke();
+        }
+
+        // === Rainbow light beams from eyes ===
+        var eyeOffX = 9 * scale, eyeOffY = 11 * scale;
+        var eyePos = [[cx - eyeOffX, cy - eyeOffY], [cx + eyeOffX, cy - eyeOffY]];
+
+        eyePos.forEach(function(eye) {
+          // Wide rainbow spray
+          for (var bi = 0; bi < 16; bi++) {
+            var beamAngle = -Math.PI / 2 + (bi - 7.5) * 0.15;
+            beamAngle += Math.sin(se / 300 + bi * 0.4) * 0.12;
+            var beamLen = 40 + Math.sin(se / 200 + bi * 1.1) * 35;
+            var bAlpha = 0.3 + 0.5 * Math.abs(Math.sin(se / 220 + bi));
+            var rgb = beamRGB[bi % beamRGB.length];
+
+            var bGrad = ctx.createLinearGradient(
+              eye[0], eye[1],
+              eye[0] + Math.cos(beamAngle) * beamLen,
+              eye[1] + Math.sin(beamAngle) * beamLen
+            );
+            bGrad.addColorStop(0, 'rgba(' + rgb[0] + ',' + rgb[1] + ',' + rgb[2] + ',' + bAlpha + ')');
+            bGrad.addColorStop(0.5, 'rgba(255,215,0,' + (bAlpha * 0.6) + ')');
+            bGrad.addColorStop(1, 'rgba(255,215,0,0)');
+            ctx.strokeStyle = bGrad;
+            ctx.lineWidth = 1.5 + Math.random() * 2.5;
+            ctx.beginPath();
+            ctx.moveTo(eye[0], eye[1]);
+            ctx.lineTo(eye[0] + Math.cos(beamAngle) * beamLen, eye[1] + Math.sin(beamAngle) * beamLen);
+            ctx.stroke();
+          }
+
+          // Bright golden core beams
+          for (var gi = 0; gi < 8; gi++) {
+            var gAngle = -Math.PI / 2 + (gi - 3.5) * 0.2 + Math.sin(se / 400 + gi) * 0.08;
+            var gLen = 18 + Math.sin(se / 150 + gi) * 14;
+            var gAlpha = 0.6 + 0.3 * Math.sin(se / 180 + gi);
+            ctx.strokeStyle = 'rgba(255,255,220,' + gAlpha + ')';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(eye[0], eye[1]);
+            ctx.lineTo(eye[0] + Math.cos(gAngle) * gLen, eye[1] + Math.sin(gAngle) * gLen);
+            ctx.stroke();
+          }
+        });
+
+        // === Frog with glowing star eyes ===
+        var twinkle = 0.4 + 0.6 * Math.abs(Math.sin(se / 90));
+        var starOuterR = 14 + twinkle * 8;
+        var starInnerR = 6 + twinkle * 4;
+
+        drawFrogAt(cx, cy, scale, 'star', { twinkle: twinkle, starOuterR: starOuterR, starInnerR: starInnerR });
+
+        // === Rainbow sparkle fountain ===
+        if (Math.random() < 0.85) {
+          var spColors = ['#ffd700', '#ff4488', '#44aaff', '#ff8844', '#ff44ff', '#44ff88', '#ffffff', '#ffaa00'];
+          var sc = spColors[Math.floor(Math.random() * spColors.length)];
+          spawnSparkles(cx + (Math.random() - 0.5) * 50, cy - 25, 3, sc, 5);
+        }
+
+        // === Rotating rainbow aura dots around frog ===
+        for (var ai = 0; ai < 8; ai++) {
+          var aAngle = se / 1200 + ai * Math.PI * 2 / 8;
+          var aDist = 40 + Math.sin(se / 500 + ai) * 10;
+          var ax = cx + Math.cos(aAngle) * aDist;
+          var ay = cy - 10 + Math.sin(aAngle) * aDist * 0.5;
+          var rgb = beamRGB[ai];
+          var aAlpha = 0.5 + 0.3 * Math.sin(se / 250 + ai);
+          var dotSize = 4 + twinkle * 3;
+
+          // Glow dot
+          var dotGlow = ctx.createRadialGradient(ax, ay, 1, ax, ay, 14);
+          dotGlow.addColorStop(0, 'rgba(' + rgb[0] + ',' + rgb[1] + ',' + rgb[2] + ',0.8)');
+          dotGlow.addColorStop(0.4, 'rgba(' + rgb[0] + ',' + rgb[1] + ',' + rgb[2] + ',' + aAlpha + ')');
+          dotGlow.addColorStop(1, 'rgba(0,0,0,0)');
+          ctx.fillStyle = dotGlow;
+          ctx.beginPath(); ctx.arc(ax, ay, 14, 0, Math.PI * 2); ctx.fill();
+
+          // Core dot
+          ctx.fillStyle = 'rgba(255,255,255,' + aAlpha + ')';
+          ctx.beginPath(); ctx.arc(ax, ay, dotSize, 0, Math.PI * 2); ctx.fill();
+        }
+
+        // Transition
+        if (se > shineDur) {
+          s.phase = 'coinShine';
+          s.startTime = Date.now();
+          spawnSparkles(cx, cy - 40, 40, '#ffd700', 8);
+        }
+      }
+
+      // ==================== PHASE 3: Coin Shine ====================
+      if (s.phase === 'coinShine') {
+        var csElapsed = Date.now() - s.startTime;
+        var coinCX = s.centerX;
+        var coinCY = s.centerY - 55;
+
+        var glowPhase = Math.min(1, csElapsed / 800);
+        var bigGlowR = 60 * glowPhase;
+        var bigGlow = ctx.createRadialGradient(coinCX, coinCY, 5, coinCX, coinCY, bigGlowR);
+        bigGlow.addColorStop(0, 'rgba(255,255,200,0.9)');
+        bigGlow.addColorStop(0.3, 'rgba(255,215,0,0.6)');
+        bigGlow.addColorStop(0.6, 'rgba(255,180,0,0.2)');
+        bigGlow.addColorStop(1, 'rgba(255,215,0,0)');
+        ctx.fillStyle = bigGlow;
+        ctx.beginPath(); ctx.arc(coinCX, coinCY, bigGlowR, 0, Math.PI * 2); ctx.fill();
+
+        for (var i = 0; i < 8; i++) {
+          var rayAngle = (Math.PI * 2 / 8) * i + csElapsed / 2000;
+          var rayLen = 30 + Math.sin(csElapsed / 300 + i) * 10;
+          ctx.strokeStyle = 'rgba(255,215,0,' + (0.5 * (1 - glowPhase * 0.5)) + ')';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.moveTo(coinCX + Math.cos(rayAngle) * 10, coinCY + Math.sin(rayAngle) * 10);
+          ctx.lineTo(coinCX + Math.cos(rayAngle) * rayLen, coinCY + Math.sin(rayAngle) * rayLen);
+          ctx.stroke();
+        }
+
+        var coinBob = Math.sin(csElapsed / 200) * 5;
+        var coinGrad = ctx.createRadialGradient(coinCX - 2, coinCY - 2 + coinBob, 2, coinCX, coinCY + coinBob, 14);
+        coinGrad.addColorStop(0, '#fff8dc');
+        coinGrad.addColorStop(0.4, '#ffd700');
+        coinGrad.addColorStop(1, '#b8860b');
+        ctx.fillStyle = coinGrad;
+        ctx.beginPath(); ctx.arc(coinCX, coinCY + coinBob, 14, 0, Math.PI * 2); ctx.fill();
+        ctx.strokeStyle = '#8B6914'; ctx.lineWidth = 2; ctx.stroke();
+        ctx.fillStyle = '#8B6914';
+        ctx.font = 'bold 16px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillText('$', coinCX, coinCY + coinBob + 1);
+
+        if (Math.random() < 0.3) spawnSparkles(coinCX, coinCY + coinBob, 3, '#ffd700', 3);
+
+        if (csElapsed > 1500) { s.phase = 'done'; }
+      }
+
+      // ==================== PHASE 4: Done ====================
+      if (s.phase === 'done') {
+        showWinOverlay();
+      }
+    }
+
+    function drawQuizPopup() {
+      if (!quizState) return;
+
+      const { pearl, options, selectedIndex, result, shakeOffset } = quizState;
+
+      // Overlay
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.55)';
+      ctx.fillRect(0, 0, COLS * TILE, ROWS * TILE);
+
+      const cx = COLS * TILE / 2;
+      const cy = ROWS * TILE / 2;
+      const bw = 300, bh = 270;
+
+      ctx.save();
+      ctx.translate(cx + shakeOffset, cy);
+
+      // Card background
+      ctx.fillStyle = '#1a1a2e';
+      ctx.beginPath();
+      ctx.roundRect(-bw / 2, -bh / 2, bw, bh, 20);
+      ctx.fill();
+      ctx.strokeStyle = COLORS.pearl;
+      ctx.lineWidth = 3;
+      ctx.stroke();
+
+      // Emoji + English word
+      ctx.fillStyle = '#fff';
+      ctx.font = '40px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'top';
+      ctx.fillText(pearl.wordObj.emoji, 0, -bh / 2 + 10);
+
+      ctx.fillStyle = COLORS.pearl;
+      ctx.font = 'bold 22px "Courier New", monospace';
+      ctx.fillText(pearl.wordObj.en, 0, -bh / 2 + 56);
+
+      // Prompt
+      ctx.fillStyle = '#aaa';
+      ctx.font = '13px "Courier New", monospace';
+      ctx.fillText('选择正确的中文含义 ⬇', 0, -bh / 2 + 82);
+
+      // Option buttons (2 columns)
+      const btnW = 120, btnH = 44;
+      const btnGapX = 16, btnGapY = 14;
+      const cols = 2;
+      const totalBtnW = cols * btnW + (cols - 1) * btnGapX;
+      const btnStartX = -totalBtnW / 2;
+      const btnStartY = -bh / 2 + 108;
+
+      for (let i = 0; i < options.length; i++) {
+        const col = i % cols;
+        const row = Math.floor(i / cols);
+        const bx = btnStartX + col * (btnW + btnGapX);
+        const by = btnStartY + row * (btnH + btnGapY);
+
+        // Determine button color
+        let bgColor = 'rgba(255,255,255,0.08)';
+        let borderColor = 'rgba(255,255,255,0.3)';
+        let textColor = '#ddd';
+
+        if (selectedIndex === i) {
+          if (result === 'correct') {
+            bgColor = 'rgba(76, 175, 80, 0.3)';
+            borderColor = '#4CAF50';
+            textColor = '#4CAF50';
+          } else if (result === 'wrong') {
+            bgColor = 'rgba(244, 67, 54, 0.3)';
+            borderColor = '#f44336';
+            textColor = '#f44336';
+          }
+        } else if (result === 'correct' && options[i].correct) {
+          bgColor = 'rgba(76, 175, 80, 0.3)';
+          borderColor = '#4CAF50';
+          textColor = '#4CAF50';
+        }
+
+        // Button background
+        ctx.fillStyle = bgColor;
+        ctx.beginPath();
+        ctx.roundRect(bx, by, btnW, btnH, 12);
+        ctx.fill();
+        ctx.strokeStyle = borderColor;
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        // Button text (Chinese)
+        ctx.fillStyle = textColor;
+        ctx.font = 'bold 18px "PingFang SC", "Microsoft YaHei", sans-serif';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(options[i].cn, bx + btnW / 2, by + btnH / 2 + 1);
+
+        // Store button rect for hit detection (in canvas coordinates)
+        options[i]._btnRect = {
+          x: cx + bx + shakeOffset,
+          y: cy + by,
+          w: btnW,
+          h: btnH,
+        };
+      }
+
+      // Result text
+      const resultY = btnStartY + 2 * (btnH + btnGapY) + 4;
+      if (result === 'correct') {
+        ctx.fillStyle = '#4CAF50';
+        ctx.font = 'bold 16px "PingFang SC", "Microsoft YaHei", sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'top';
+        ctx.fillText('✅ 答对啦！太棒了！', 0, resultY);
+      } else if (result === 'wrong') {
+        ctx.fillStyle = '#f44336';
+        ctx.font = 'bold 16px "PingFang SC", "Microsoft YaHei", sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'top';
+        ctx.fillText('❌ 再试一次吧~', 0, resultY);
+      }
+
+      ctx.restore();
+    }
+
+    function drawFullFrame() {
+      ctx.clearRect(0, 0, COLS * TILE, ROWS * TILE);
+      drawBackground();
+
+      // Draw maze tiles
+      for (let y = 0; y < ROWS; y++) {
+        for (let x = 0; x < COLS; x++) {
+          if (maze[y][x] === 1) {
+            drawWall(x, y);
+          } else {
+            drawTile(x, y);
+          }
+        }
+      }
+
+      // Draw word pearls
+      wordPearls.forEach(p => drawWordPearl(p));
+
+      // Draw gold coin
+      if (!winAnimState) drawGoldCoin();
+
+      // Draw exit (mother frog) — skip if win animation active
+      if (!winAnimState) drawFrog(exit.x, exit.y);
+
+      // Draw player (tadpole) — skip if win animation
+      if ((gameStarted || won) && !winAnimState) {
+        drawTadpole(player.x, player.y);
+      }
+
+      // Win celebration effects
+      drawFrogCelebration();
+
+      // Sparkles (on top)
+      drawSparkles();
+
+      // Bubbles (on top)
+      drawBubbles();
+
+      // Quiz popup (on top of everything)
+      drawQuizPopup();
+    }
+
+    // ==================== GAME LOGIC ====================
+    function canMove(x, y) {
+      if (x < 0 || x >= COLS || y < 0 || y >= ROWS) return false;
+      return maze[y][x] === 0;
+    }
+
+    function generateQuizOptions(correctWordObj) {
+      // Pick 3 wrong Chinese options from WORD_POOL
+      const wrongs = WORD_POOL
+        .filter(w => w.en !== correctWordObj.en)
+        .sort(() => Math.random() - 0.5)
+        .slice(0, 3);
+
+      const options = [
+        { cn: correctWordObj.cn, en: correctWordObj.en, correct: true },
+        ...wrongs.map(w => ({ cn: w.cn, en: w.en, correct: false })),
+      ];
+
+      // Shuffle options
+      return options.sort(() => Math.random() - 0.5);
+    }
+
+    function onWordCollect(pearl) {
+      // Lock input and show quiz
+      inputLocked = true;
+
+      const options = generateQuizOptions(pearl.wordObj);
+
+      quizState = {
+        pearl: pearl,
+        options: options,
+        selectedIndex: null,
+        result: null,
+        startTime: Date.now(),
+        shakeOffset: 0,
+      };
+
+      // Speak the English word
+      speakWord(pearl.wordObj.en);
+    }
+
+    function submitQuizAnswer(index) {
+      if (!quizState || quizState.result) return;
+
+      const option = quizState.options[index];
+      quizState.selectedIndex = index;
+
+      if (option.correct) {
+        quizState.result = 'correct';
+        sfxWordCollect();
+
+        // Mark pearl as collected
+        quizState.pearl.collected = true;
+        collectedWords.push(quizState.pearl.wordObj);
+        updateWordCount();
+
+        // Speak Chinese after correct answer
+        speakWord(quizState.pearl.wordObj.en);
+
+        // Close quiz after delay
+        setTimeout(() => {
+          quizState = null;
+          inputLocked = false;
+        }, 1200);
+      } else {
+        quizState.result = 'wrong';
+        sfxBump();
+
+        // Shake animation, then let them retry
+        let shakeFrames = 0;
+        const shakeInterval = setInterval(() => {
+          if (!quizState || quizState.result !== 'wrong') {
+            clearInterval(shakeInterval);
+            return;
+          }
+          shakeFrames++;
+          quizState.shakeOffset = Math.sin(shakeFrames * 0.8) * 8 * Math.max(0, 1 - shakeFrames / 12);
+          if (shakeFrames >= 12) {
+            clearInterval(shakeInterval);
+            if (quizState) {
+              quizState.shakeOffset = 0;
+              quizState.result = null;
+              quizState.selectedIndex = null;
+            }
+          }
+        }, 30);
+      }
+    }
+
+    function movePlayer(dx, dy) {
+      if (won || !gameStarted || inputLocked) return;
+
+      const nx = player.x + dx;
+      const ny = player.y + dy;
+
+      if (!canMove(nx, ny)) {
+        sfxBump();
+        return;
+      }
+
+      player.x = nx;
+      player.y = ny;
+      moves++;
+      sfxMove();
+      updateMovesDisplay();
+
+      // Check for gold coin
+      if (goldCoin && !goldCoin.collected && nx === goldCoin.x && ny === goldCoin.y) {
+        goldCoin.collected = true;
+        sfxCoin();
+        var cpx = goldCoin.x * TILE + TILE / 2;
+        var cpy = goldCoin.y * TILE + TILE / 2;
+        spawnSparkles(cpx, cpy, 20, '#ffd700', 5);
+        speakWord('coin');
+        // Brief pause for coin celebration
+        inputLocked = true;
+        setTimeout(function() { inputLocked = false; }, 600);
+        return;
+      }
+
+      // Check for word pearl
+      const pearl = wordPearls.find(p => p.x === nx && p.y === ny && !p.collected);
+      if (pearl) {
+        onWordCollect(pearl);
+        return;
+      }
+
+      // Check win — must have coin to enter exit
+      if (nx === exit.x && ny === exit.y) {
+        if (!goldCoin || !goldCoin.collected) {
+          // Can't exit without the gold coin
+          sfxBump();
+          // Flash hint
+          if (!winAnimState) {
+            speakWord('coin');
+          }
+          return;
+        }
+        startWinAnimation();
+      }
+    }
+
+    function startWinAnimation() {
+      won = true;
+      gameStarted = false;
+      inputLocked = true;
+      sfxWin();
+
+      var fx = exit.x * TILE + TILE / 2;
+      var fy = exit.y * TILE + TILE / 2;
+      var cx = COLS * TILE / 2;   // screen center
+      var cy = ROWS * TILE / 2;
+
+      winAnimState = {
+        phase: 'frogJumpToCenter',
+        startTime: Date.now(),
+        exitX: fx,
+        exitY: fy,
+        centerX: cx,
+        centerY: cy,
+        coinX: cx,
+        coinY: cy - 50,
+      };
+    }
+
+    function showWinOverlay() {
+      winAnimState = null;
+      inputLocked = false;
+
+      const level = LEVELS[currentLevel];
+      const collected = collectedWords.length;
+      const total = level.wordCount;
+      const stars = collected >= total ? 3 : collected >= Math.ceil(total / 2) ? 2 : 1;
+      const emojis = ['', '😊', '🌟', '🏆'];
+      const titles = ['', '继续加油！', '很棒！', '太厉害了！'];
+
+      document.getElementById('winEmoji').textContent = emojis[stars];
+      document.getElementById('winTitle').textContent = titles[stars];
+      document.getElementById('winStars').textContent = '⭐'.repeat(stars) + '☆'.repeat(3 - stars);
+      document.getElementById('winMoves').textContent = moves;
+
+      const wordsDiv = document.getElementById('winWords');
+      wordsDiv.innerHTML = '';
+      collectedWords.forEach(w => {
+        const span = document.createElement('span');
+        span.className = 'word-pill';
+        span.textContent = `${w.emoji} ${w.en} ${w.cn}`;
+        wordsDiv.appendChild(span);
+      });
+      if (collectedWords.length === 0) {
+        wordsDiv.innerHTML = '<span style="color:#aaa;font-size:0.8rem;">还没有收集到单词哦~</span>';
+      }
+
+      document.getElementById('overlay').classList.add('show');
+      document.getElementById('btnStart').style.display = 'block';
+      document.getElementById('btnRestart').style.display = 'none';
+    }
+
+    function updateMovesDisplay() {
+      document.getElementById('moves').textContent = moves;
+    }
+
+    function updateWordCount() {
+      const level = LEVELS[currentLevel];
+      const collected = collectedWords.length;
+      document.getElementById('wordCount').textContent = `${collected}/${level.wordCount}`;
+    }
+
+    function initGame() {
+      const level = LEVELS[currentLevel];
+      setGridSize(level.gridSize);
+      generateMaze();
+
+      // Prune dead ends for easier levels, skip for very hard
+      if (level.prune) {
+        const protectedCells = getProtectedCells();
+        pruneDeadEnds(protectedCells);
+        // Verify path still exists after pruning
+        const verifyPath = bfs({ x: 1, y: 1 }, exit);
+        if (verifyPath.length === 0) {
+          generateMaze(); // fallback: regenerate without pruning
+        }
+      }
+      player.x = 1;
+      player.y = 1;
+      wordPearls = [];
+      collectedWords = [];
+      goldCoin = null;
+      moves = 0;
+      won = false;
+      gameStarted = true;
+      inputLocked = false;
+      quizState = null;
+      winAnimState = null;
+      sparkles = [];
+
+      placeItems();
+      spawnBubbles();
+      updateMovesDisplay();
+      updateWordCount();
+      document.getElementById('overlay').classList.remove('show');
+      document.getElementById('btnStart').style.display = 'none';
+      document.getElementById('btnRestart').style.display = 'block';
+    }
+
+    // ==================== GAME LOOP ====================
+    let lastTime = 0;
+    function gameLoop(timestamp) {
+      const dt = lastTime ? timestamp - lastTime : 16;
+      lastTime = timestamp;
+
+      if (gameStarted || won || winAnimState) {
+        updateBubbles(dt);
+        updateSparkles();
+      }
+
+      drawFullFrame();
+      requestAnimationFrame(gameLoop);
+    }
+
+    // ==================== EVENT HANDLERS ====================
+    // Canvas click for quiz options
+    canvas.addEventListener('click', (e) => {
+      if (!quizState || quizState.result === 'correct') return;
+
+      const rect = canvas.getBoundingClientRect();
+      const scaleX = (COLS * TILE) / rect.width;
+      const scaleY = (ROWS * TILE) / rect.height;
+      const mx = (e.clientX - rect.left) * scaleX;
+      const my = (e.clientY - rect.top) * scaleY;
+
+      for (let i = 0; i < quizState.options.length; i++) {
+        const btn = quizState.options[i]._btnRect;
+        if (!btn) continue;
+        if (mx >= btn.x && mx <= btn.x + btn.w && my >= btn.y && my <= btn.y + btn.h) {
+          submitQuizAnswer(i);
+          break;
+        }
+      }
+    });
+
+    // Touch support for quiz
+    canvas.addEventListener('touchstart', (e) => {
+      if (!quizState || quizState.result === 'correct') return;
+
+      const rect = canvas.getBoundingClientRect();
+      const scaleX = (COLS * TILE) / rect.width;
+      const scaleY = (ROWS * TILE) / rect.height;
+      const touch = e.touches[0];
+      const mx = (touch.clientX - rect.left) * scaleX;
+      const my = (touch.clientY - rect.top) * scaleY;
+
+      for (let i = 0; i < quizState.options.length; i++) {
+        const btn = quizState.options[i]._btnRect;
+        if (!btn) continue;
+        if (mx >= btn.x && mx <= btn.x + btn.w && my >= btn.y && my <= btn.y + btn.h) {
+          e.preventDefault();
+          submitQuizAnswer(i);
+          break;
+        }
+      }
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (!gameStarted || won || inputLocked) return;
+
+      switch (e.key) {
+        case 'ArrowUp':    e.preventDefault(); movePlayer(0, -1); break;
+        case 'ArrowDown':  e.preventDefault(); movePlayer(0, 1); break;
+        case 'ArrowLeft':  e.preventDefault(); movePlayer(-1, 0); break;
+        case 'ArrowRight': e.preventDefault(); movePlayer(1, 0); break;
+      }
+    });
+
+    // Start buttons
+    document.getElementById('btnStart').addEventListener('click', initGame);
+    document.getElementById('btnPlayAgain').addEventListener('click', initGame);
+    document.getElementById('btnRestart').addEventListener('click', initGame);
+
+    // Touch D-pad
+    function setupTouchButton(id, dx, dy) {
+      const btn = document.getElementById(id);
+      let interval = null;
+
+      btn.addEventListener('pointerdown', (e) => {
+        e.preventDefault();
+        movePlayer(dx, dy);
+        interval = setInterval(() => movePlayer(dx, dy), 150);
+      });
+
+      btn.addEventListener('pointerup', (e) => {
+        e.preventDefault();
+        if (interval) { clearInterval(interval); interval = null; }
+      });
+
+      btn.addEventListener('pointerleave', () => {
+        if (interval) { clearInterval(interval); interval = null; }
+      });
+
+      btn.addEventListener('pointercancel', () => {
+        if (interval) { clearInterval(interval); interval = null; }
+      });
+    }
+
+    setupTouchButton('btnUp', 0, -1);
+    setupTouchButton('btnDown', 0, 1);
+    setupTouchButton('btnLeft', -1, 0);
+    setupTouchButton('btnRight', 1, 0);
+
+    // Level select
+    document.querySelectorAll('.level-group button').forEach(btn => {
+      btn.addEventListener('click', () => {
+        currentLevel = btn.dataset.level;
+        document.querySelectorAll('.level-group button').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        initGame();
+      });
+    });
+
+    // Speech toggle
+    document.getElementById('speechToggle').addEventListener('click', function() {
+      speechEnabled = !speechEnabled;
+      this.classList.toggle('on', speechEnabled);
+      this.textContent = speechEnabled ? '🔊' : '🔇';
+    });
+
+    // ==================== INIT ====================
+    // roundRect polyfill for older browsers
+    if (!ctx.roundRect) {
+      ctx.roundRect = function(x, y, w, h, r) {
+        if (typeof r === 'number') r = { tl: r, tr: r, br: r, bl: r };
+        ctx.beginPath();
+        ctx.moveTo(x + r.tl, y);
+        ctx.lineTo(x + w - r.tr, y);
+        ctx.quadraticCurveTo(x + w, y, x + w, y + r.tr);
+        ctx.lineTo(x + w, y + h - r.br);
+        ctx.quadraticCurveTo(x + w, y + h, x + w - r.br, y + h);
+        ctx.lineTo(x + r.bl, y + h);
+        ctx.quadraticCurveTo(x, y + h, x, y + h - r.bl);
+        ctx.lineTo(x, y + r.tl);
+        ctx.quadraticCurveTo(x, y, x + r.tl, y);
+        ctx.closePath();
+      };
+    }
+
+    // Generate initial maze for idle scene
+    setGridSize(LEVELS[currentLevel].gridSize);
+    generateMaze();
+    if (LEVELS[currentLevel].prune) {
+      const initProtected = getProtectedCells();
+      pruneDeadEnds(initProtected);
+    }
+    spawnBubbles();
+    updateWordCount();
+
+    // Handle window resize
+    let resizeTimeout;
+    window.addEventListener('resize', () => {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(() => {
+        const level = LEVELS[currentLevel];
+        setGridSize(level.gridSize);
+        generateMaze();
+        if (level.prune) {
+          const prot = getProtectedCells();
+          pruneDeadEnds(prot);
+        }
+        placeItems();
+        spawnBubbles();
+      }, 300);
+    });
+
+    requestAnimationFrame(gameLoop);
+  </script>
+</body>
+</html>
