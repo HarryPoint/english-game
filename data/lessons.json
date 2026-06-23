@@ -684,7 +684,16 @@
       {
         "phrase": "Clock off",
         "definition_zh": "结束工作",
-        "examples": []
+        "examples": [
+          {
+            "en": "I usually clock off at 6 pm, but today I need to work late to finish this report",
+            "zh": "我通常下午6点打卡下班，但今天我需要加班完成这份报告。"
+          },
+          {
+            "en": "Don't forget to clock off before you leave the office, otherwise the system won't record your working hours",
+            "zh": "离开办公室前别忘了打卡下班，否则系统不会记录你的工作时间。"
+          }
+        ]
       },
       {
         "phrase": "Get off",
