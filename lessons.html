@@ -154,46 +154,40 @@ body{
   font-size:12.5px;color:var(--zh);line-height:1.5;margin-top:1px;
 }
 
-/* Scenario */
-.scenario-block{
-  margin-bottom:6px;
-  border:1px solid var(--border);
-  border-radius:4px;
-  background:var(--surface);
-  overflow:hidden;
+/* Reading / Book mode */
+.reading-chapter{margin-bottom:40px}
+.reading-chapter-title{
+  font-size:18px;font-weight:700;color:var(--en);
+  margin-bottom:28px;padding-bottom:12px;
+  border-bottom:1px solid var(--border);
+  letter-spacing:.5px;
+  font-family:system-ui,sans-serif;
 }
-.scenario-block-title{
-  display:flex;align-items:center;gap:8px;
-  padding:10px 16px;
-  cursor:pointer;user-select:none;
-  font-size:13px;font-weight:600;color:var(--en);
+.reading-section{margin-bottom:36px}
+.reading-section-title{
+  font-size:15px;font-weight:700;color:var(--accent);
+  margin-bottom:18px;
 }
-.scenario-block-title:hover{background:var(--ex-bg)}
-.scenario-block-title .arr{
-  font-size:10px;color:var(--text3);transition:transform .15s;flex-shrink:0;
-}
-.scenario-block.open .scenario-block-title .arr{transform:rotate(90deg)}
-.scenario-block-title .n{font-size:11px;color:var(--text3);font-weight:400}
-.scenario-block-body{display:none;padding:0 16px 12px}
-.scenario-block.open .scenario-block-body{display:block}
-.scenario-row{
-  display:grid;grid-template-columns:1fr 1fr;gap:14px;
-  padding:5px 0;border-bottom:1px dashed var(--border);
-  font-size:13px;line-height:1.55;
-}
-.scenario-row:last-child{border-bottom:none}
-.scenario-row .s-en{color:var(--en)}
-.scenario-row .s-zh{color:var(--zh)}
-
-/* Scenario groups */
-.scenario-group{margin-bottom:2px}
-.scenario-group-title{
+.reading-group{margin-bottom:24px}
+.reading-group-title{
   font-size:12px;font-weight:600;color:var(--accent-dim);
-  padding:6px 0 4px;letter-spacing:.3px;
+  margin-bottom:12px;letter-spacing:.5px;
+  text-transform:uppercase;
+  font-family:system-ui,sans-serif;
 }
-.scenario-group-body{
-  padding-left:12px;border-left:2px solid var(--border);
-  margin-bottom:8px;
+.reading-item{
+  margin-bottom:18px;
+  padding-left:18px;
+  border-left:2px solid transparent;
+  transition:border-color .25s;
+}
+.reading-item:hover{border-left-color:var(--border)}
+.reading-en{
+  font-size:15px;color:var(--en);line-height:1.75;
+  margin-bottom:3px;
+}
+.reading-zh{
+  font-size:13.5px;color:var(--zh);line-height:1.7;
 }
 
 /* Loading */
@@ -215,7 +209,7 @@ body{
   .sidebar.open{transform:translateX(0)}
   .main{margin-left:0;width:100%;padding:16px 12px 60px}
   .phrase-entry{margin-bottom:16px;padding-bottom:14px}
-  .scenario-row{grid-template-columns:1fr;gap:2px}
+  .reading-item{padding-left:12px}
   .example-group{padding-left:12px}
   .menu-btn{
     display:flex;position:fixed;top:8px;left:8px;z-index:20;
@@ -331,45 +325,32 @@ body{
   }
 
   function renderScenario(lesson){
-    let html='<div class="book-section">';
-    html+='<div class="book-section-title">'+esc(lesson.title)+' &nbsp;·&nbsp; '+lesson.sections.length+' sections</div>';
-    html+=lesson.sections.map((sec,i)=>`
-      <div class="scenario-block ${i===0?'open':''}">
-        <div class="scenario-block-title">
-          <span class="arr">▶</span><span>${esc(sec.title)}</span><span class="n">${sec.items?sec.items.length:(sec.groups||[]).reduce((c,g)=>c+g.items.length,0)}</span>
-        </div>
-        <div class="scenario-block-body">
-          ${sec.groups ? renderGroups(sec.groups) : (sec.items||[]).map(item=>`
-            <div class="scenario-row">
-              <div class="s-en">${esc(item.en)}</div>
-              <div class="s-zh">${esc(item.zh)}</div>
-            </div>
-          `).join('')}
-        </div>
+    let html='<div class="reading-chapter">';
+    html+='<h1 class="reading-chapter-title">'+esc(lesson.title)+'</h1>';
+    html+=lesson.sections.map(sec=>`
+      <div class="reading-section">
+        <h2 class="reading-section-title">${esc(sec.title)}</h2>
+        ${(sec.groups||[]).map(g=>`
+          <div class="reading-group">
+            <h3 class="reading-group-title">${esc(g.title)}</h3>
+            ${g.items.map(item=>`
+              <div class="reading-item">
+                <p class="reading-en">${esc(item.en)}</p>
+                <p class="reading-zh">${esc(item.zh)}</p>
+              </div>
+            `).join('')}
+          </div>
+        `).join('')}
+        ${(sec.items||[]).map(item=>`
+          <div class="reading-item">
+            <p class="reading-en">${esc(item.en)}</p>
+            <p class="reading-zh">${esc(item.zh)}</p>
+          </div>
+        `).join('')}
       </div>
     `).join('');
     html+='</div>';
     mainContent.innerHTML=html;
-
-    function renderGroups(groups){
-      return groups.map(g=>`
-        <div class="scenario-group">
-          <div class="scenario-group-title">${esc(g.title)}</div>
-          <div class="scenario-group-body">
-            ${g.items.map(item=>`
-              <div class="scenario-row">
-                <div class="s-en">${esc(item.en)}</div>
-                <div class="s-zh">${esc(item.zh)}</div>
-              </div>
-            `).join('')}
-          </div>
-        </div>
-      `).join('');
-    }
-
-    mainContent.querySelectorAll('.scenario-block-title').forEach(h=>{
-      h.addEventListener('click',()=>h.parentElement.classList.toggle('open'));
-    });
   }
 
   function esc(s){if(!s)return'';const d=document.createElement('div');d.textContent=s;return d.innerHTML}
