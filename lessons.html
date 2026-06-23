@@ -88,8 +88,12 @@ body{
 }
 
 /* Search */
-.search-bar{
+.sticky-bar{
   position:sticky;top:0;z-index:5;
+  background:var(--bg);
+  padding-bottom:4px;
+}
+.search-bar{
   padding:4px 0 8px;
   background:var(--bg);
 }
@@ -152,6 +156,51 @@ body{
 }
 .example-translation{
   font-size:10px;color:var(--zh);line-height:1.4;margin-top:0;
+}
+
+/* Audio play button */
+.audio-btn{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:22px;height:17px;
+  margin-right:3px;
+  border:1px solid var(--border);
+  border-radius:2px;
+  background:var(--surface);
+  color:var(--text3);
+  cursor:pointer;
+  font-size:7px;
+  flex-shrink:0;
+  vertical-align:middle;
+  transition:all .15s;
+  padding:0;
+  line-height:1;
+}
+.audio-btn:hover{background:var(--accent-dim);color:var(--en);border-color:var(--accent-dim)}
+.audio-btn.playing{background:var(--accent);color:var(--sidebar-bg);border-color:var(--accent)}
+.audio-btn[data-audio=""]{display:none}
+.example-sentence,.reading-en{display:flex;align-items:baseline}
+.example-sentence .text,.reading-en .text{flex:1}
+
+/* Play-all button */
+.play-all-btn{
+  display:inline-flex;align-items:center;gap:4px;
+  padding:3px 8px;
+  border:1px solid var(--border);
+  border-radius:3px;
+  background:var(--surface);
+  color:var(--text2);
+  cursor:pointer;
+  font-size:10px;
+  font-family:system-ui,sans-serif;
+  transition:all .15s;
+}
+.play-all-btn:hover{background:var(--accent-dim);color:var(--en);border-color:var(--accent-dim)}
+.play-all-btn.playing{background:var(--accent);color:var(--sidebar-bg);border-color:var(--accent)}
+.play-all-header{display:flex;align-items:center;justify-content:space-between}
+.play-all-header.sticky{
+  position:sticky;z-index:4;
+  padding:4px 0;
+  background:var(--bg);
 }
 
 /* Reading / Book mode */
@@ -236,6 +285,8 @@ body{
   const menuBtn=document.getElementById('menuBtn');
 
   let lessons=[],currentIdx=0;
+  let currentAudio=null,currentBtn=null;
+  let seqAudio=null,seqBtn=null,seqTimer=null,seqBtns=[],seqIdx=0;
 
   try{
     const resp=await fetch('data/lessons.json');
@@ -257,6 +308,12 @@ body{
   selectLesson(0);
 
   function selectLesson(idx){
+    // Reset sequential playback state
+    if(seqTimer){clearTimeout(seqTimer);seqTimer=null}
+    if(seqAudio){seqAudio.pause();seqAudio=null}
+    seqBtn=null;seqIdx=0;
+    if(currentAudio){currentAudio.pause();currentAudio=null;currentBtn=null}
+
     currentIdx=idx;
     const lesson=lessons[idx];
     document.querySelectorAll('.lesson-link').forEach((el,i)=>el.classList.toggle('active',i===idx));
@@ -268,9 +325,9 @@ body{
   }
 
   function renderVocabulary(lesson){
-    let html='<div class="search-bar"><input type="text" id="searchInput" placeholder="Search..."><div class="search-info" id="searchInfo"></div></div>';
+    let html='<div class="sticky-bar"><div class="search-bar"><input type="text" id="searchInput" placeholder="Search..."><div class="search-info" id="searchInfo"></div></div>';
+    html+='<div class="play-all-header"><div class="book-section-title">'+esc(lesson.title)+' &nbsp;·&nbsp; '+lesson.phrases.length+' entries</div><button class="play-all-btn" id="playAllBtn">▶ Play All</button></div></div>';
     html+='<div class="book-section">';
-    html+='<div class="book-section-title">'+esc(lesson.title)+' &nbsp;·&nbsp; '+lesson.phrases.length+' entries</div>';
     html+='<div id="entryList"></div></div>';
     html+='<div id="noResult" class="error" style="display:none">No matching entries</div>';
     mainContent.innerHTML=html;
@@ -294,7 +351,7 @@ body{
           <div class="example-group">
             ${(p.examples||[]).map(ex=>`
               <div class="example-item">
-                <div class="example-sentence">${esc(ex.en)}</div>
+                <div class="example-sentence"><button class="audio-btn" type="button" data-audio="data/${esc(ex.audio||'')}" title="Play">▶</button><span class="text">${esc(ex.en)}</span></div>
                 <div class="example-translation">${esc(ex.zh)}</div>
               </div>
             `).join('')}
@@ -319,7 +376,7 @@ body{
 
   function renderScenario(lesson){
     let html='<div class="reading-chapter">';
-    html+='<h1 class="reading-chapter-title">'+esc(lesson.title)+'</h1>';
+    html+='<div class="play-all-header sticky" style="top:0"><h1 class="reading-chapter-title" style="border:none;margin-bottom:0;padding-bottom:0">'+esc(lesson.title)+'</h1><button class="play-all-btn" id="playAllBtn">▶ Play All</button></div>';
     html+=lesson.sections.map(sec=>`
       <div class="reading-section">
         <h2 class="reading-section-title">${esc(sec.title)}</h2>
@@ -328,7 +385,7 @@ body{
             <h3 class="reading-group-title">${esc(g.title)}</h3>
             ${g.items.map(item=>`
               <div class="reading-item">
-                <p class="reading-en">${esc(item.en)}</p>
+                <p class="reading-en"><button class="audio-btn" type="button" data-audio="data/${esc(item.audio||'')}" title="Play">▶</button><span class="text">${esc(item.en)}</span></p>
                 <p class="reading-zh">${esc(item.zh)}</p>
               </div>
             `).join('')}
@@ -336,7 +393,7 @@ body{
         `).join('')}
         ${(sec.items||[]).map(item=>`
           <div class="reading-item">
-            <p class="reading-en">${esc(item.en)}</p>
+            <p class="reading-en"><button class="audio-btn" type="button" data-audio="data/${esc(item.audio||'')}" title="Play">▶</button><span class="text">${esc(item.en)}</span></p>
             <p class="reading-zh">${esc(item.zh)}</p>
           </div>
         `).join('')}
@@ -347,6 +404,115 @@ body{
   }
 
   function esc(s){if(!s)return'';const d=document.createElement('div');d.textContent=s;return d.innerHTML}
+
+  // ---- Audio playback ----
+  // (currentAudio, currentBtn, seqAudio, seqBtn, etc. declared at top)
+
+  mainContent.addEventListener('click',function(e){
+    const btn=e.target.closest('.audio-btn');
+    if(!btn)return;
+    e.preventDefault();
+
+    const audioPath=btn.dataset.audio;
+    if(!audioPath){return;}
+
+    // Clicking the same button: toggle play/pause
+    if(btn===currentBtn && currentAudio){
+      if(currentAudio.paused){currentAudio.play();btn.classList.add('playing');btn.textContent='⏸'}
+      else{currentAudio.pause();btn.classList.remove('playing');btn.textContent='▶'}
+      return;
+    }
+
+    // Stop previous
+    if(currentAudio){currentAudio.pause();currentAudio=null}
+    if(currentBtn){currentBtn.classList.remove('playing');currentBtn.textContent='▶'}
+
+    // Start new
+    btn.classList.add('playing');
+    btn.textContent='⏸';
+    const audio=new Audio(audioPath);
+    audio.preload='auto';
+    audio.oncanplaythrough=()=>{
+      audio.play().catch(()=>{btn.classList.remove('playing');btn.textContent='▶'});
+    };
+    audio.onended=()=>{
+      btn.classList.remove('playing');
+      btn.textContent='▶';
+      currentAudio=null;currentBtn=null;
+    };
+    audio.onerror=()=>{
+      btn.classList.remove('playing');
+      btn.textContent='▶';
+      currentAudio=null;currentBtn=null;
+    };
+    currentAudio=audio;
+    currentBtn=btn;
+
+    // Stop sequential play if user clicks individual button
+    if(seqTimer){clearTimeout(seqTimer);seqTimer=null}
+    if(seqAudio){seqAudio.pause();seqAudio=null}
+    if(seqBtn){seqBtn.classList.remove('playing');seqBtn.innerHTML=seqIdx>0?'▶ Resume':'▶ Play All';seqBtn=null}
+  });
+
+  // ---- Sequential play-all ----
+  function stopSeq(){
+    if(seqTimer){clearTimeout(seqTimer);seqTimer=null}
+    if(seqAudio){seqAudio.pause();seqAudio=null}
+    if(seqBtn){seqBtn.classList.remove('playing');seqBtn.innerHTML=seqIdx>0?'▶ Resume':'▶ Play All';seqBtn=null}
+    if(currentBtn){currentBtn.classList.remove('playing');currentBtn.textContent='▶'}
+    currentAudio=null;currentBtn=null;
+  }
+
+  function playSeq(idx){
+    if(!seqBtn)return;
+    if(idx>=seqBtns.length){seqIdx=0;stopSeq();return;}
+    seqIdx=idx;
+    const btn=seqBtns[idx];
+    const audioPath=btn.dataset.audio;
+    if(!audioPath){playSeq(idx+1);return;}
+
+    // Highlight current item
+    if(currentBtn){currentBtn.classList.remove('playing');currentBtn.textContent='▶'}
+    btn.classList.add('playing');
+    btn.textContent='⏸';
+    currentBtn=btn;
+
+    const audio=new Audio(audioPath);
+    audio.preload='auto';
+    currentAudio=audio;
+    seqAudio=audio;
+    audio.oncanplaythrough=()=>{audio.play().catch(()=>{})};
+    audio.onended=()=>{
+      btn.classList.remove('playing');
+      btn.textContent='▶';
+      seqAudio=null;currentAudio=null;currentBtn=null;
+      seqTimer=setTimeout(()=>playSeq(idx+1), 500);
+    };
+    audio.onerror=()=>{
+      btn.classList.remove('playing');
+      btn.textContent='▶';
+      seqAudio=null;currentAudio=null;currentBtn=null;
+      seqTimer=setTimeout(()=>playSeq(idx+1), 500);
+    };
+  }
+
+  mainContent.addEventListener('click',function(e){
+    const btn=e.target.closest('#playAllBtn');
+    if(!btn)return;
+
+    if(seqBtn){
+      // Stop
+      stopSeq();
+    }else{
+      // Start or resume
+      seqBtn=btn;
+      seqBtns=[...mainContent.querySelectorAll('.audio-btn[data-audio]')].filter(b=>b.dataset.audio);
+      if(!seqBtns.length){seqBtn=null;return;}
+      seqBtn.classList.add('playing');
+      seqBtn.innerHTML='⏸ Stop';
+      playSeq(seqIdx);
+    }
+  });
 
   // Mobile menu
   menuBtn.addEventListener('click',()=>sidebar.classList.toggle('open'));
