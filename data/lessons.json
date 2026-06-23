@@ -363,7 +363,7 @@
         "examples": [
           {
             "en": "Our company is starting to get into other types of technologies such as AI and blockchain",
-            "zh": "我们的公司开始涉足其他类型的技术，比如如人工智能和区块链领域。"
+            "zh": "我们的公司开始涉足其他类型的技术，比如人工智能和区块链领域。"
           }
         ]
       },
@@ -514,11 +514,11 @@
         "definition_zh": "利用；借助；依靠；意为通过某种手段或资源来实现某个目标，或者通过利用某种优势来获得更大的好处或效益。",
         "examples": [
           {
-            "en": "We need to leverage on our marketing campaign to increase sales",
+            "en": "We need to leverage our marketing campaign to increase sales",
             "zh": "我们需要利用我们的营销活动来增加销售额。"
           },
           {
-            "en": "She is able to leverage on her connections to secure a job interview",
+            "en": "She is able to leverage her connections to secure a job interview",
             "zh": "她能够利用她的人脉关系来获得一次面试机会。"
           }
         ]
@@ -815,7 +815,7 @@
           },
           {
             "en": "They laid off 50 of their staff to cope with the economic downturn",
-            "zh": "他们裁掉了50%的工作人员，以应对经济不景气的情况。"
+            "zh": "他们裁掉了50名工作人员，以应对经济不景气的情况。"
           }
         ]
       },
@@ -888,7 +888,7 @@
         "definition_zh": "详细阐述，详细说明",
         "examples": [
           {
-            "en": "Can you please elaborate on how the new system will improve our work flow",
+            "en": "Can you please elaborate on how the new system will improve our workflow",
             "zh": "你能详细说明一下新系统将如何改善我们的工作流程吗？"
           },
           {
@@ -902,7 +902,7 @@
         "definition_zh": "从...中获利; 利用...",
         "examples": [
           {
-            "en": "The company is looking to cash in on the growing demand for eco friendly products",
+            "en": "The company is looking to cash in on the growing demand for eco-friendly products",
             "zh": "公司正在寻求从对环保产品的不断增长的需求中获利。"
           },
           {
@@ -1127,7 +1127,7 @@
       },
       {
         "phrase": "Measure up to",
-        "definition_zh": "达到;符合合期望或要求",
+        "definition_zh": "达到;符合期望或要求",
         "examples": [
           {
             "en": "Does his work measure up to our standards",
@@ -1353,7 +1353,7 @@
     "lesson": 3,
     "title": "Lola 外企职场英语课程 第三课",
     "type": "vocabulary",
-    "total_phrases": 44,
+    "total_phrases": 43,
     "phrases": [
       {
         "phrase": "take over",
@@ -1568,7 +1568,7 @@
             "zh": "请不要干扰我的决策过程。"
           },
           {
-            "en": "I don't want to interfere with your work flow but have you considered trying this new software",
+            "en": "I don't want to interfere with your workflow but have you considered trying this new software",
             "zh": "我不想干扰你的工作流程，但是你考虑过尝试这个新软件吗？"
           }
         ]
@@ -1786,7 +1786,7 @@
         "definition_zh": "交接；提交",
         "examples": [
           {
-            "en": "Please turn over the files to the next person in the work flow",
+            "en": "Please turn over the files to the next person in the workflow",
             "zh": "请将文件交接给工作流程中的下一个人。"
           },
           {
@@ -1895,12 +1895,7 @@
       },
       {
         "phrase": "Juice up",
-        "definition_zh": "提高；改进；加强、增强",
-        "examples": []
-      },
-      {
-        "phrase": "juice up",
-        "definition_zh": "通常表示在某些方面进行增强和改进，以取得更好的结果或效果",
+        "definition_zh": "提高；改进；加强、增强；通常表示在某些方面进行增强和改进，以取得更好的结果或效果",
         "examples": [
           {
             "en": "We need to juice up our marketing campaign to attract more customers",
@@ -2156,7 +2151,7 @@
           },
           {
             "en": "The team had some setbacks but we're confident we can get back on track and deliver a quality product",
-            "zh": ""
+            "zh": "团队遇到了一些挫折，但我们有信心能够重回正轨，交付高质量的产品。"
           }
         ]
       },
@@ -2664,7 +2659,7 @@
     "lesson": 5,
     "title": "Lola 外企职场英语课程 第五课",
     "type": "vocabulary",
-    "total_phrases": 45,
+    "total_phrases": 44,
     "phrases": [
       {
         "phrase": "Boil the ocean",
@@ -2703,19 +2698,19 @@
         ]
       },
       {
-        "phrase": "no brainer",
+        "phrase": "no-brainer",
         "definition_zh": "显而易见的决定；不需思考的决策；这个短语通常用来形容一种非常明显或者容易的决策或选择，无需花费太多时间和精力就能做出决定。",
         "examples": [
           {
-            "en": "Choosing the cheaper option was a no brainer for us",
+            "en": "Choosing the cheaper option was a no-brainer for us",
             "zh": "选择更便宜的选项对我们来说是轻而易举的。"
           },
           {
-            "en": "It's a no brainer to invest in employee training and development",
+            "en": "It's a no-brainer to invest in employee training and development",
             "zh": "在员工培训和发展方面进行投资是显而易见的。"
           },
           {
-            "en": "Hiring the experienced candidate was a no brainer decision",
+            "en": "Hiring the experienced candidate was a no-brainer decision",
             "zh": "雇用经验丰富的候选人是一个显而易见的决定。"
           }
         ]
@@ -2786,12 +2781,7 @@
       },
       {
         "phrase": "Play hardball",
-        "definition_zh": "采取强硬手段",
-        "examples": []
-      },
-      {
-        "phrase": "play hardball",
-        "definition_zh": "是指采取强硬手段来达到自己的目的，通常意味着不妥协、不让步，甚至有可能使用威；胁或恐吓等手段来实现自己的利益。这个短语通常用来描述商业谈判、竞争或争端中的行为方式。",
+        "definition_zh": "采取强硬手段；是指采取强硬手段来达到自己的目的，通常意味着不妥协、不让步，甚至有可能使用威胁或恐吓等手段来实现自己的利益。这个短语通常用来描述商业谈判、竞争或争端中的行为方式。",
         "examples": [
           {
             "en": "The negotiations have stalled and I think it's time to start playing hardball",
@@ -2976,7 +2966,7 @@
             "zh": "她由于忘记与客户跟进而失误了，现在我们可能会失去这个客户。"
           },
           {
-            "en": "Don't drop the ballon this presentation it's a big opportunity for us",
+            "en": "Don't drop the ball on this presentation — it's a big opportunity for us",
             "zh": "在这个演讲中不要出差错——这对我们来说是个重大的机会。"
           }
         ]
@@ -3908,7 +3898,7 @@
         "definition_zh": "不大可能成功的尝试，不抱太大希望的尝试",
         "examples": [
           {
-            "en": "Applying for a job with no relevant experience is along shot but I'm willing to give it a try",
+            "en": "Applying for a job with no relevant experience is a long shot but I'm willing to give it a try",
             "zh": "没有相关经验申请工作是一种冒险，但我愿意尝试。"
           },
           {
@@ -4056,7 +4046,7 @@
         "definition_zh": "处于全力进行中",
         "examples": [
           {
-            "en": "The holiday season is in full swing and our e commerce team is processing orders round the clock",
+            "en": "The holiday season is in full swing and our e-commerce team is processing orders round the clock",
             "zh": "假日季节正处于全面展开阶段，我们的电商团队正在全天候处理订单。"
           },
           {
@@ -4088,7 +4078,7 @@
             "zh": "你不能两者兼得，必须选择一个。"
           },
           {
-            "en": "The team needs to find a way to increase productivity without sacrificing work life balance but it's not always possible to have your cake and eat it",
+            "en": "The team needs to find a way to increase productivity without sacrificing work-life balance but it's not always possible to have your cake and eat it",
             "zh": "团队需要找到一种方法，在不牺牲工作与生活平衡的前提下提高生产力，但想要两全其美并不总是可能的。"
           }
         ]
@@ -4663,7 +4653,7 @@
         "examples": [
           {
             "en": "The IT department is working to resolve the technical issues with the system",
-            "zh": "部门正在努力解决系统的技术问题。"
+            "zh": "IT部门正在努力解决系统的技术问题。"
           },
           {
             "en": "We need to resolve the conflict between the two departments before it gets worse",
@@ -5427,7 +5417,7 @@
     "lesson": 9,
     "title": "Lola 外企职场英语课程 第九课",
     "type": "vocabulary",
-    "total_phrases": 35,
+    "total_phrases": 33,
     "phrases": [
       {
         "phrase": "Automate",
@@ -5481,7 +5471,7 @@
           },
           {
             "en": "As an entrepreneur it's important to always stay ahead of the game and innovate new ideas",
-            "zh": "(作为一名企业家，始终保持领先和创新新的想法非常重要。"
+            "zh": "作为一名企业家，始终保持领先和创新新的想法非常重要。"
           }
         ]
       },
@@ -5672,15 +5662,9 @@
         "definition_zh": "详细说明；详细阐述；详细展开",
         "examples": [
           {
-            "en": "The CEO provided an elaborate explanation of the company's strategic goals for the upcoming",
-            "zh": ""
-          }
-        ]
-      },
-      {
-        "phrase": "year CEO",
-        "definition_zh": "详细解释了公司明年的战略目标。",
-        "examples": [
+            "en": "The CEO provided an elaborate explanation of the company's strategic goals for the upcoming year",
+            "zh": "CEO详细解释了公司明年的战略目标。"
+          },
           {
             "en": "The marketing team prepared an elaborate presentation to showcase the new product features and benefits",
             "zh": "营销团队准备了一个详细的演示，展示新产品的特点和优势。"
@@ -5738,15 +5722,10 @@
             "zh": "在提交给审计师之前，我们需要纠正财务报表中的错误。"
           },
           {
-            "en": "The IT team is working diligently to rectify the technical issues that are causing system",
-            "zh": ""
+            "en": "The IT team is working diligently to rectify the technical issues that are causing system downtime",
+            "zh": "IT团队正在努力解决导致系统停机的技术问题。"
           }
         ]
-      },
-      {
-        "phrase": "downtime IT",
-        "definition_zh": "团队正在努力解决导致系统停机的技术问题。",
-        "examples": []
       },
       {
         "phrase": "Overlook",
@@ -5809,7 +5788,7 @@
         "definition_zh": "阻碍；妨碍；阻止",
         "examples": [
           {
-            "en": "The outdated technology hinders the efficiency of our work flow",
+            "en": "The outdated technology hinders the efficiency of our workflow",
             "zh": "过时的技术妨碍了我们的工作效率。"
           },
           {
