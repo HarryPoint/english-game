@@ -1,0 +1,9 @@
+{
+  "name": "english-game",
+  "version": "1.0.0",
+  "description": "English learning game with TTS audio",
+  "private": true,
+  "dependencies": {
+    "alibabacloud-nls": "^1.0.0"
+  }
+}
