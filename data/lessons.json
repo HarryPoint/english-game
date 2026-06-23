@@ -66,7 +66,7 @@
         "definition_zh": "结束工作，下班; 收工",
         "examples": [
           {
-            "en": "Let s knock off early tonight",
+            "en": "Let's knock off early tonight",
             "zh": "我们今晚早点收工吧。"
           },
           {
@@ -122,7 +122,7 @@
         "definition_zh": "如期发生; 进展顺利；奏效；行得通",
         "examples": [
           {
-            "en": "The solution didn t work out",
+            "en": "The solution didn't work out",
             "zh": "这个解决办法行不通."
           },
           {
@@ -136,7 +136,7 @@
         "definition_zh": "起草; 制定",
         "examples": [
           {
-            "en": "Now that we have agreed on the details I ll draw up the contract and send it to you tomorrow",
+            "en": "Now that we have agreed on the details I'll draw up the contract and send it to you tomorrow",
             "zh": "既然我们已经就细节达成一致，我会起草合同并在明天发送给你。"
           }
         ]
@@ -188,7 +188,7 @@
         "definition_zh": "结束某事",
         "examples": [
           {
-            "en": "I d like to wind up the meeting by 11 am",
+            "en": "I'd like to wind up the meeting by 11 am",
             "zh": "我现在11点前完成会议。"
           },
           {
@@ -202,7 +202,7 @@
         "definition_zh": "仔细检查; 用心思考",
         "examples": [
           {
-            "en": "Let s just go over this process again to make sure we re all on the same page",
+            "en": "Let's just go over this process again to make sure we're all on the same page",
             "zh": "让我们再过一遍这个流程，确保大家都明白。"
           },
           {
@@ -216,7 +216,7 @@
         "definition_zh": "考察; 调查",
         "examples": [
           {
-            "en": "Let s look into this market a bit further",
+            "en": "Let's look into this market a bit further",
             "zh": "让我们在进一步考察这个市场。"
           },
           {
@@ -244,7 +244,7 @@
         "definition_zh": "向某人描述，解释，展示某事",
         "examples": [
           {
-            "en": "For the first part of my talk I m going to take you through last years achievements",
+            "en": "For the first part of my talk I'm going to take you through last year's achievements",
             "zh": "在我演讲的第一部分，我将带你们回顾过去几年的成就。"
           },
           {
@@ -258,7 +258,7 @@
         "definition_zh": "接受，同意某人的提议或邀请",
         "examples": [
           {
-            "en": "I ll take you upon that I think that s a fair proposal",
+            "en": "I'll take you upon that I think that's a fair proposal",
             "zh": "在这上面我同意你。我觉得这是一个合理的提议"
           }
         ]
@@ -300,7 +300,7 @@
             "zh": "我们新产品线的推出真的很成功。"
           },
           {
-            "en": "Since early last year venture capital investments in Block chain technology have really taken off",
+            "en": "Since early last year venture capital investments in blockchain technology have really taken off",
             "zh": "自去年年初以来，区块链技术的风险投资开始迅速发展."
           }
         ]
@@ -338,7 +338,7 @@
         "definition_zh": "把想法或点子说清楚；使一个想法被传达，被理解，被表达",
         "examples": [
           {
-            "en": "Example It was a challenge to get across my idea to the CEO but I succeeded in the end",
+            "en": "It was a challenge to get across my idea to the CEO but I succeeded in the end",
             "zh": "把我的想法传达给首席执行官是一个挑战，但最终我成功了。"
           },
           {
@@ -353,7 +353,11 @@
         "examples": [
           {
             "en": "Let's get down to the specifics",
-            "zh": "让我们来看看细节 nowthateveryonehasmet,let'sgetdowntobusiness.现在大家都互相认识了，我们就进入正题吧。"
+            "zh": "让我们来看看细节。"
+          },
+          {
+            "en": "Now that everyone has met, let's get down to business",
+            "zh": "现在大家都互相认识了，我们就进入正题吧。"
           }
         ]
       },
@@ -372,17 +376,17 @@
         "definition_zh": "涉足；进入某领域",
         "examples": [
           {
-            "en": "Our company is starting to get into other types of technologies such as A I and block chain",
+            "en": "Our company is starting to get into other types of technologies such as AI and blockchain",
             "zh": "我们的公司开始涉足其他类型的技术，比如如人工智能和区块链领域。"
           }
         ]
       },
       {
-        "phrase": "Getaway from",
+        "phrase": "Get away from",
         "definition_zh": "偏离；跑题，说和主题无关的事情",
         "examples": [
           {
-            "en": "You re getting away from the point We should be focusing on next year s budget",
+            "en": "You're getting away from the point. We should be focusing on next year's budget",
             "zh": "你偏离主题了。我们应该专注在明年的预算上。"
           }
         ]
@@ -406,7 +410,7 @@
         "definition_zh": "恢复过来；克服困难，问题",
         "examples": [
           {
-            "en": "It s probably going to take usa couple of years to get over this crisis",
+            "en": "It's probably going to take us a couple of years to get over this crisis",
             "zh": "我们可能需要几年时间才能从这次危机中恢复过来。"
           }
         ]
@@ -416,8 +420,8 @@
         "definition_zh": "完成难做的任务或工作",
         "examples": [
           {
-            "en": "Example Although the training was very intensive I got through it",
-            "zh": "然培训强度很大，但我还是完成了。"
+            "en": "Although the training was very intensive, I got through it",
+            "zh": "虽然培训强度很大，但我还是完成了。"
           }
         ]
       },
@@ -511,7 +515,11 @@
         "examples": [
           {
             "en": "I'm not sure if this idea will pan out but it's worth a try",
-            "zh": "我不确定这个电子是否会奏效，但是值得一试I'mhopingthisinterviewwillpanoutandI'llgetthejob 我希望这次面试能够成功，我能得到这份工作。"
+            "zh": "我不确定这个点子是否会奏效，但是值得一试。"
+          },
+          {
+            "en": "I'm hoping this interview will pan out and I'll get the job",
+            "zh": "我希望这次面试能够成功，我能得到这份工作。"
           }
         ]
       },
@@ -647,11 +655,7 @@
         "examples": [
           {
             "en": "I need to brush upon my Excel skills before the presentation next week",
-            "zh": "下周演示之前，我需"
-          },
-          {
-            "en": "",
-            "zh": "要复习一下我的Excel技能。"
+            "zh": "下周演示之前，我需要复习一下我的Excel技能。"
           },
           {
             "en": "I'm planning to brush upon my language skills before I travel to Europe for the business trip",
@@ -770,7 +774,11 @@
         "examples": [
           {
             "en": "We eventually came to the conclusion that the plan was not feasible",
-            "zh": "我们最终意识到这个计划不可行Afteradiscussion,wefinallycametotherealizationofourmistake.经过一番讨论，我们最终认识到我们的错误。"
+            "zh": "我们最终意识到这个计划不可行。"
+          },
+          {
+            "en": "After a discussion, we finally came to the realization of our mistake",
+            "zh": "经过一番讨论，我们最终认识到我们的错误。"
           }
         ]
       },
@@ -779,12 +787,12 @@
         "definition_zh": "抛售",
         "examples": [
           {
-            "en": "unnecessary assets",
-            "zh": "股票市场上的大规模抛售导致了很多公司的股票价格的大幅下跌。"
+            "en": "Due to the challenging economic situation, the company is considering selling off some of its unnecessary assets",
+            "zh": "由于经济形势严峻，公司正在考虑出售一些不必要的资产。"
           },
           {
-            "en": "Due to the challenging economic situation the company is considering selling off some of its",
-            "zh": ""
+            "en": "The massive sell-off in the stock market caused a significant drop in share prices for many companies",
+            "zh": "股票市场上的大规模抛售导致了很多公司的股票价格的大幅下跌。"
           }
         ]
       },
@@ -840,23 +848,15 @@
           },
           {
             "en": "They turned over the financial report to the new auditor",
-            "zh": "我们需要确保所有必要的文件都已经移交给了新的管理员。"
-          },
-          {
-            "en": "",
-            "zh": "销售、周转、翻盘"
+            "zh": "他们把财务报告移交给了新的审计师。"
           },
           {
             "en": "The store was able to turn over all of its inventory during the holiday season",
             "zh": "这家商店在节日销售季节里成功售出了所有库存。"
           },
           {
-            "en": "Marco s company is doing well It turns over almost 250 000 a year Marco",
-            "zh": "的公司运营良好。"
-          },
-          {
-            "en": "",
-            "zh": "它每年的营业额接近25万美元。"
+            "en": "Marco's company is doing well. It turns over almost 250,000 a year",
+            "zh": "Marco的公司运营良好，它每年的营业额接近25万美元。"
           }
         ]
       },
@@ -879,11 +879,11 @@
         "definition_zh": "预留时间；暂定计划；暂定安排；暂时的计划或安排，这些计划可能会在以后被更改或确认。",
         "examples": [
           {
-            "en": "I might be busy tomorrow but let s pencil in a meeting anyway",
+            "en": "I might be busy tomorrow but let's pencil in a meeting anyway",
             "zh": "我明天可能很忙，但是我们还是把会议安排在明天吧"
           },
           {
-            "en": "I ll have a meeting tomorrow Let's pencil in sometime to review the proposal tomorrow",
+            "en": "I'll have a meeting tomorrow. Let's pencil in sometime to review the proposal",
             "zh": "我们明天预留一些时间来过一遍方案。"
           }
         ]
@@ -967,7 +967,7 @@
             "zh": "我们需要弄清楚这个任务的目标和期限。"
           },
           {
-            "en": "We need top in down the actual requirements for this project",
+            "en": "We need to pin down the actual requirements for this project",
             "zh": "我们需要弄清楚这个项目的实际需求。"
           }
         ]
@@ -1023,7 +1023,7 @@
             "zh": "最终我们得出结论，该计划不可行。"
           },
           {
-            "en": "after a discussion we finally came to the realization of our mistake",
+            "en": "After a discussion, we finally came to the realization of our mistake",
             "zh": "经过一番讨论，我们最终认识到我们的错误。"
           }
         ]
@@ -1122,7 +1122,12 @@
         "examples": [
           {
             "en": "We can build up on this idea to create a better plan",
-            "zh": "我们可以在这个想法的基础上制定一个更好的计划Wecanbuilduponourprevioussuccessandexpandourbusinesstonewmarkets.我们可以在以前的成功基础上，将业务拓展到新的市场。"
+            "zh": "我们可以在这个想法的基础上制定一个更好的计划。"
+          },
+          {
+            "en": "We can build upon our previous success and expand our business to new markets",
+            "zh": "我们可以在以前的成功基础上，将业务拓展到新的市场。"
+          }
           }
         ]
       },
@@ -1336,7 +1341,11 @@
         "examples": [
           {
             "en": "Feel free to chime in with your thoughts during the meeting",
-            "zh": "在会议期间可以随时发表你的想法Whendiscussingthebudget,everyoneshouldbeabletochimeinwiththeiropinions 讨论预算时，每个人都应该能够发表自己的意见."
+            "zh": "在会议期间可以随时发表你的想法。"
+          },
+          {
+            "en": "When discussing the budget, everyone should be able to chime in with their opinions",
+            "zh": "讨论预算时，每个人都应该能够发表自己的意见。"
           }
         ]
       },
@@ -1345,7 +1354,7 @@
         "definition_zh": "同步；协调",
         "examples": [
           {
-            "en": "Let's sync up later this week togo over the project timeline",
+            "en": "Let's sync up later this week to go over the project timeline",
             "zh": "本周晚些时候让我们同步一下，过一遍项目时间表。"
           },
           {
@@ -1382,7 +1391,7 @@
           },
           {
             "en": "I think we should leave out the irrelevant information from the presentation",
-            "zh": ""
+            "zh": "我认为我们应该在演示中省略无关的信息。"
           }
         ]
       }
@@ -1534,7 +1543,11 @@
         "examples": [
           {
             "en": "We need to turnaround the company's financial performance this quarter",
-            "zh": "我们需要在这个季度扭转公司的财务表现The company was able to turn around its reputation with a successful public relations campaign. 通过一次成功的公关活动，公司成功扭转了其声誉。"
+            "zh": "我们需要在这个季度扭转公司的财务表现。"
+          },
+          {
+            "en": "The company was able to turn around its reputation with a successful public relations campaign",
+            "zh": "通过一次成功的公关活动，公司成功扭转了其声誉。"
           }
         ]
       },
@@ -1572,7 +1585,11 @@
         "examples": [
           {
             "en": "The marketing team was able to win over the target audience with a creative advertising campaign",
-            "zh": "市场团队通过一次有创意的广告活动赢得了目标受众的支持Thenewmanagerquicklywonoverherteambydemonstratingherexpertise.新经理展示她的专业知识迅速获得了团队的支持。"
+            "zh": "市场团队通过一次有创意的广告活动赢得了目标受众的支持。"
+          },
+          {
+            "en": "The new manager quickly won over her team by demonstrating her expertise",
+            "zh": "新经理通过展示她的专业知识迅速获得了团队的支持。"
           }
         ]
       },
@@ -1582,7 +1599,11 @@
         "examples": [
           {
             "en": "Before starting the project we need to map out a clear plan and timeline",
-            "zh": "在开始项目之前，我们需要制定一个清晰的计划和时间表Themarketingteamwillmapouttheadvertisingstrategyforthenewproductlaunch. 市场团队将制定新产品发布的广告策略。"
+            "zh": "在开始项目之前，我们需要制定一个清晰的计划和时间表。"
+          },
+          {
+            "en": "The marketing team will map out the advertising strategy for the new product launch",
+            "zh": "市场团队将制定新产品发布的广告策略。"
           }
         ]
       },
@@ -2033,7 +2054,11 @@
         "examples": [
           {
             "en": "If you want to stand out in your job you need to be willing to go the extra mile to provide exceptional service to your customers",
-            "zh": "如果你想在工作中脱颖而出，你需要愿意尽一切努力为客户提供卓越的服务。）Asasalesperson,it'simportanttogotheextramiletomakesureyourclientsaresatisfiedwith theirpurchase."
+            "zh": "如果你想在工作中脱颖而出，你需要愿意尽一切努力为客户提供卓越的服务。"
+          },
+          {
+            "en": "As a salesperson, it's important to go the extra mile to make sure your clients are satisfied with their purchase",
+            "zh": "作为一名销售人员，付出额外努力以确保客户对购买满意是非常重要的。"
           }
         ]
       },
@@ -2046,17 +2071,13 @@
             "zh": "经过数月的计划，由于预算限制，我们不得不中止这个项目。"
           },
           {
-            "en": "and shutdown operations",
+            "en": "With the company facing financial difficulties the board of directors decided to pull the plug and shutdown operations",
             "zh": "由于公司面临财务困境，董事会决定停止营运并关闭公司。"
-          },
-          {
-            "en": "With the company facing financial difficulties the board of directors decided to pull the plug",
-            "zh": ""
           }
         ]
       },
       {
-        "phrase": "Toucha nerve",
+        "phrase": "Touch a nerve",
         "definition_zh": "触及痛处；触及敏感的地方",
         "examples": [
           {
@@ -2092,26 +2113,32 @@
             "zh": "我们需要提出一种新的市场营销策略，可以改变现状并增加销售额。"
           },
           {
-            "en": "Investing in new technology can move the needle and give usa competitive edge",
+            "en": "Investing in new technology can move the needle and give us a competitive edge",
             "zh": "投资于新技术，可以推动变革并为我们赢得竞争优势。"
           },
           {
             "en": "A strong social media presence can move the needle and help us reach a wider audience",
             "zh": "一个强大的社交媒体存在可以改变现状并帮助我们吸引更广泛的受众。"
+          }
+        ]
+      },
+      {
+        "phrase": "Give someone the green light",
+        "definition_zh": "批准某人做某事；给某人开绿灯",
+        "examples": [
+          {
+            "en": "Our boss finally gave us the green light to start the new project",
+            "zh": "我们的老板终于批准我们开始新项目了。"
           },
           {
-            "en": "Give someone the green light",
-            "zh": "受权做某事；批准做某事Ourbossfinallygaveusthegreenlighttostartthenewproject.我们的老板终于批准我们开始新项目了。"
-          },
-          {
-            "en": "The CEO gave the marketing department the green light to launch the new ad campaign CEO",
-            "zh": "给了市场部门批准，让他们推出新的广告宣传活动。"
+            "en": "The CEO gave the marketing department the green light to launch the new ad campaign",
+            "zh": "CEO给了市场部门批准，让他们推出新的广告宣传活动。"
           }
         ]
       },
       {
         "phrase": "in the midst of",
-        "definition_zh": "在...情形下；在...之中\"，表示某人或某事处于某种情况或环境之中",
+        "definition_zh": "在...情形下；在...之中，表示某人或某事处于某种情况或环境之中",
         "examples": [
           {
             "en": "In the midst of a crisis it's important to stay calm and focused",
@@ -2142,11 +2169,11 @@
         ]
       },
       {
-        "phrase": "Coverall the bases",
+        "phrase": "Cover all the bases",
         "definition_zh": "全面考虑；确保万无一失",
         "examples": [
           {
-            "en": "Before we launch the new product we need to make sure we coverall the bases",
+            "en": "Before we launch the new product we need to make sure we cover all the bases",
             "zh": "在我们推出新产品之前，我们需要确保万无一失。"
           },
           {
@@ -2196,7 +2223,7 @@
             "zh": "让我们从头开始，一步步来。"
           },
           {
-            "en": "We need togo back to square one and rethink our approach",
+            "en": "We need to go back to square one and rethink our approach",
             "zh": "我们需要回到起点，重新思考我们的方法。"
           },
           {
@@ -2204,12 +2231,18 @@
             "zh": "由于之前的计划失败了，我们将不得不重新开始。"
           },
           {
-            "en": "Back to the drawing board",
-            "zh": "重起炉灶We thought we had a winning proposal, but the client rejected it, so it's back to the drawing board. 我们原本以为这个提案很有胜算，但客户拒绝了，所以我们只能重新开始。"
-          },
-          {
-            "en": "Our team worked hard on the project but the results were not what we were hoping for We need togo back to the drawing board and figure out where we went wrong",
+            "en": "Our team worked hard on the project but the results were not what we were hoping for. We need to go back to square one and figure out where we went wrong",
             "zh": "我们团队为这个项目付出了很多努力，但结果并不如我们所愿。我们需要回到起点，找出问题所在。"
+          }
+        ]
+      },
+      {
+        "phrase": "Back to the drawing board",
+        "definition_zh": "重新开始；从头再来；重起炉灶",
+        "examples": [
+          {
+            "en": "We thought we had a winning proposal, but the client rejected it, so it's back to the drawing board",
+            "zh": "我们原本以为这个提案很有胜算，但客户拒绝了，所以我们只能重新开始。"
           }
         ]
       },
@@ -2260,7 +2293,7 @@
         ]
       },
       {
-        "phrase": "Play devil s advocate",
+        "phrase": "Play devil's advocate",
         "definition_zh": "充当反对者的角色",
         "examples": [
           {
@@ -2335,7 +2368,11 @@
         "examples": [
           {
             "en": "We need to engage in forward planning to identify potential challenges and opportunities that may arise in the future",
-            "zh": "我们需要进行前瞻性规划，以确定未来可能出现的挑战和机遇Forward planning is essential for a successful product launch, as it ensures that we have the necessaryresourcesandstrategiesinplace. 前瞻性规划对于成功的产品推出至关重要，因为它确保我们有必要的资源和策略。"
+            "zh": "我们需要进行前瞻性规划，以确定未来可能出现的挑战和机遇。"
+          },
+          {
+            "en": "Forward planning is essential for a successful product launch, as it ensures that we have the necessary resources and strategies in place",
+            "zh": "前瞻性规划对于成功的产品推出至关重要，因为它确保我们有必要的资源和策略。"
           }
         ]
       },
@@ -2344,11 +2381,11 @@
         "definition_zh": "未来某个时间；在进程的后面阶段",
         "examples": [
           {
-            "en": "We may not see the benefits of this investment right away but down the line it will payoff",
+            "en": "We may not see the benefits of this investment right away but down the line it will pay off",
             "zh": "我们可能不会立即看到这个投资的好处，但最终会得到回报。"
           },
           {
-            "en": "We need to make sure our decisions are sustainable and will holdup down the line",
+            "en": "We need to make sure our decisions are sustainable and will hold up down the line",
             "zh": "我们需要确保我们的决策是可持续的，可以在未来长期有效。"
           }
         ]
@@ -2369,7 +2406,7 @@
       },
       {
         "phrase": "Ballpark",
-        "definition_zh": "一个大概的估计或范围；相当于\"roughestimate\" 或 \"approximatefigure\"",
+        "definition_zh": "一个大概的估计或范围；相当于 rough estimate 或 approximate figure",
         "examples": [
           {
             "en": "Can you give me a ballpark figure of how much this project is going to cost",
@@ -2390,7 +2427,7 @@
             "zh": "我厌倦了这个没有任何成长和晋升机会的死胡同工作。"
           },
           {
-            "en": "I need to find away out of this dead end job and start pursuing my career goals",
+            "en": "I need to find a way out of this dead end job and start pursuing my career goals",
             "zh": "我需要找到一条走出这个死胡同工作、开始追求自己职业目标的路。"
           }
         ]
@@ -2598,10 +2635,16 @@
           {
             "en": "In this industry you need to stay ahead of the curve if you want to succeed",
             "zh": "在这个行业，如果你想成功，就必须跑在前面。"
-          },
+          }
+        ]
+      },
+      {
+        "phrase": "Juggle work and home life",
+        "definition_zh": "平衡工作与家庭生活",
+        "examples": [
           {
-            "en": "Juggle work and home life",
-            "zh": "平衡工作与家庭It'simportanttofindwaystojuggleworkandhomelifetoavoidburnout.为避免过度疲劳，找到平衡工作和家庭生活的方法非常重要。"
+            "en": "It's important to find ways to juggle work and home life to avoid burnout",
+            "zh": "为避免过度疲劳，找到平衡工作和家庭生活的方法非常重要。"
           },
           {
             "en": "Juggling work and home life can be challenging but with good time management skills it's possible",
@@ -2664,8 +2707,8 @@
         ]
       },
       {
-        "phrase": "If that s the case",
-        "definition_zh": "如果这样的话=inthatcase",
+        "phrase": "If that's the case",
+        "definition_zh": "如果这样的话",
         "examples": [
           {
             "en": "If that's the case we need to revise our strategy accordingly",
@@ -2919,7 +2962,11 @@
         "examples": [
           {
             "en": "If you want to make it in this industry you need to have thick skin",
-            "zh": "要想在这个行业立足，你必须得有一副厚皮肤Weneed to be able to face criticism and challenges with resilience, and only those with thick skinwillbeabletosucceed.我们需要能够坚定地面对批评和挑战，只有那些具有厚皮肤的人才能够成功。"
+            "zh": "要想在这个行业立足，你必须得有一副厚皮肤。"
+          },
+          {
+            "en": "We need to be able to face criticism and challenges with resilience, and only those with thick skin will be able to succeed",
+            "zh": "我们需要能够坚定地面对批评和挑战，只有那些具有厚皮肤的人才能够成功。"
           }
         ]
       },
@@ -2943,18 +2990,13 @@
         "examples": [
           {
             "en": "What's the revenue projection for next quarter Off the top of my head I would say around 500 000",
-            "zh": "下个季度的收入预期是多少？\"\"随口一说，我觉得大概会在50万左右。\""
+            "zh": "下个季度的收入预期是多少？随口一说，我觉得大概会在50万左右。"
           },
           {
-            "en": "How much time do we have left to finish this project Off the top of my head I would say we",
-            "zh": ""
+            "en": "How much time do we have left to finish this project? Off the top of my head, I would say we have about two weeks",
+            "zh": "我们还有多少时间完成这个项目？随口一说，我觉得我们还有大约两个星期的时间。"
           }
         ]
-      },
-      {
-        "phrase": "have about two weeks",
-        "definition_zh": "我们还有多少时间完成这个项目？\"\"随口一说，我觉得我们还有大；约两个星期的时间。\"",
-        "examples": []
       },
       {
         "phrase": "Come in handy",
@@ -3481,29 +3523,25 @@
         "definition_zh": "推动进展；取得重大进展",
         "examples": [
           {
-            "en": "company's profitability",
+            "en": "Implementing this new strategy has the potential to move the needle and improve our company's profitability",
             "zh": "实施这项新策略有可能推动我们公司的盈利能力，产生积极的影响。"
           },
           {
             "en": "We have identified a few key areas where we can focus our efforts to move the needle and make significant improvements to our operations",
             "zh": "我们确定了几个关键领域，可以集中精力来促进发展，对我们的运营产生重大的改进。"
-          },
-          {
-            "en": "Implementing this new strategy has the potential to move the needle and improve our",
-            "zh": ""
           }
         ]
       },
       {
-        "phrase": "Getup to speed",
+        "phrase": "Get up to speed",
         "definition_zh": "熟悉情况",
         "examples": [
           {
-            "en": "You need to getup to speed on the new projects owe can start working on it together",
+            "en": "You need to get up to speed on the new project so we can start working on it together",
             "zh": "你需要熟悉新项目的情况，这样我们才能一起开始工作。"
           },
           {
-            "en": "I'll read the report to getup to speed on the latest developments",
+            "en": "I'll read the report to get up to speed on the latest developments",
             "zh": "我会阅读报告，了解最新的发展情况。"
           }
         ]
@@ -3613,14 +3651,20 @@
           {
             "en": "During the meeting John was confused about the concept but then the penny dropped and he grasped it",
             "zh": "在会议期间，约翰对这个概念感到困惑，但后来灵光一现，他明白了。"
-          },
+          }
+        ]
+      },
+      {
+        "phrase": "Walk a tightrope",
+        "definition_zh": "在...之间权衡利弊；走钢丝",
+        "examples": [
           {
-            "en": "Walking a tightrope between",
-            "zh": "在...之间权衡利弊Asamanager,youhavetowalkatightropebetweenmeetingtheneedsofyouremployeesand meetingtheneedsofthecompany.作为经理，你必须在满足员工的需求和公司的需求之间权衡利弊。"
+            "en": "As a manager, you have to walk a tightrope between meeting the needs of your employees and meeting the needs of the company",
+            "zh": "作为经理，你必须在满足员工的需求和公司的需求之间权衡利弊。"
           },
           {
             "en": "The politician is walking a tightrope between appeasing his base and reaching out to undecided voters",
-            "zh": "这位政治家正在在讨好他的支持者和争取未定选民之间权衡利弊。"
+            "zh": "这位政治家正在讨好他的支持者和争取未定选民之间权衡利弊。"
           }
         ]
       },
@@ -3649,18 +3693,30 @@
           {
             "en": "It's always a good idea to get your foot in the door at a company you want to work for",
             "zh": "在你想要工作的公司里先从小做起总是个好主意。"
-          },
+          }
+        ]
+      },
+      {
+        "phrase": "Come up short / Fall short",
+        "definition_zh": "失败；未达成目标",
+        "examples": [
           {
-            "en": "Come up short Fall short",
-            "zh": "失败/未达成目标Wecameupshortontheprojectdeadlineandhadtoaskforanextension.我们没有在项目的截止日期之前完成，不得不要求延期。"
+            "en": "We came up short on the project deadline and had to ask for an extension",
+            "zh": "我们没有在项目的截止日期之前完成，不得不要求延期。"
           },
           {
             "en": "She fell short of her fundraising goal by 500",
             "zh": "她的筹款目标差了500美元。"
-          },
+          }
+        ]
+      },
+      {
+        "phrase": "Hold the purse strings",
+        "definition_zh": "控制资金；掌握财政大权",
+        "examples": [
           {
-            "en": "Hold one s purse strings",
-            "zh": "控制资金；掌握财政大权AstheCFO,sheholdsthepursestringsofthecompany,makingallthefinancialdecisions.作为首席财务官，她掌握着公司的财政大权，做出所有的财务决策。"
+            "en": "As the CFO, she holds the purse strings of the company, making all the financial decisions",
+            "zh": "作为首席财务官，她掌握着公司的财政大权，做出所有的财务决策。"
           },
           {
             "en": "The project manager is the one who holds the purse strings for the project allocating budget and resources",
@@ -3691,7 +3747,7 @@
             "zh": "公司总是按照规定办事，以避免任何法律问题。"
           },
           {
-            "en": "As a teacher it is important to grade students ' work by the book to ensure fairness",
+            "en": "As a teacher it is important to grade students' work by the book to ensure fairness",
             "zh": "作为一名教师，按照规定评分对于确保公平很重要。"
           }
         ]
@@ -3721,21 +3777,33 @@
           {
             "en": "The employee was caught red handed manipulating data in the company's financial records",
             "zh": "这名员工在篡改公司财务记录时被当场抓住现行。"
+          }
+        ]
+      },
+      {
+        "phrase": "A dime a dozen",
+        "definition_zh": "十分普遍；不值一文；大量存在",
+        "examples": [
+          {
+            "en": "In the job market, entry-level positions for fresh graduates are a dime a dozen",
+            "zh": "在就业市场上，针对新毕业生的初级职位非常普遍。"
           },
           {
-            "en": "Dime a dozen it s a steal",
-            "zh": "十分普遍；不值一文；大量存在Inthejobmarket,entry-levelpositionsforfreshgraduatesareadimeadozen.在就业市场上，针对新毕业生的初级职位非常普遍。"
-          },
-          {
-            "en": "There are so many freelancers offering similar services online they area dime a dozen",
+            "en": "There are so many freelancers offering similar services online, they are a dime a dozen",
             "zh": "在网上有很多提供类似服务的自由职业者，非常普遍。"
+          }
+        ]
+      },
+      {
+        "phrase": "Put the cart before the horse",
+        "definition_zh": "本末倒置，本不应先做的反而先做了",
+        "examples": [
+          {
+            "en": "They started hiring employees before even finalizing their business model. It's like putting the cart before the horse",
+            "zh": "他们在连商业模式都没有最终确定的情况下就开始雇佣员工，这就是本末倒置。"
           },
           {
-            "en": "Put the cart before the horse",
-            "zh": "本末倒置，本不应先做的反而先做了Theystarted hiring employees before even finalizing their business model. It's like puttingthe cartbeforethehorse. 他们在连商业模式都没有最终确定的情况下就开始雇佣员工，这就是本末倒置。"
-          },
-          {
-            "en": "We can't start building the website without gathering the content and design requirements first Let's not put the cart before the horse",
+            "en": "We can't start building the website without gathering the content and design requirements first. Let's not put the cart before the horse",
             "zh": "我们不能在先没有收集到内容和设计要求的情况下开始建设网站，不要本末倒置了。"
           }
         ]
@@ -3745,7 +3813,7 @@
         "definition_zh": "孤注一掷，不惜一切代价；放手一搏，不畏困难，追求最大的成功",
         "examples": [
           {
-            "en": "The company decided togo for broke and invest all their resources in the new project",
+            "en": "The company decided to go for broke and invest all their resources in the new project",
             "zh": "公司决定孤注一掷，将所有资源都投入到新项目中。"
           },
           {
@@ -3755,7 +3823,7 @@
         ]
       },
       {
-        "phrase": "Get bang for one s buck",
+        "phrase": "Get bang for one's buck",
         "definition_zh": "用最少的投入得到最多的价值；在工作中通常用来表示在投资、花费资源或努力时获取最大回报的意思。",
         "examples": [
           {
@@ -3830,11 +3898,17 @@
           },
           {
             "en": "The team used blue sky thinking to come up with a completely new approach to the problem",
-            "zh": "(团队使用创新思维来提出完全新的解决问题的方法。"
-          },
+            "zh": "团队使用创新思维来提出完全新的解决问题的方法。"
+          }
+        ]
+      },
+      {
+        "phrase": "Jump on the bandwagon",
+        "definition_zh": "跟风；追随潮流",
+        "examples": [
           {
-            "en": "Jumping or climbing on the bandwagon",
-            "zh": "跟风，追随潮流Many companies are jumping on the bandwagon and implementing environmentally friendly policies. 许多公司跟风，实施环保政策。"
+            "en": "Many companies are jumping on the bandwagon and implementing environmentally friendly policies",
+            "zh": "许多公司跟风，实施环保政策。"
           },
           {
             "en": "Some investors regret not jumping on the bandwagon and investing in the tech industry earlier",
@@ -3857,7 +3931,7 @@
         ]
       },
       {
-        "phrase": "It s a rip off",
+        "phrase": "It's a rip off",
         "definition_zh": "它是个骗局，这很坑",
         "examples": [
           {
@@ -4066,10 +4140,16 @@
           {
             "en": "The sales team is in full swing conducting sales calls and meetings to meet quarterly targets",
             "zh": "销售团队正在全力以赴，进行销售电话和会议，以达到季度目标。"
-          },
+          }
+        ]
+      },
+      {
+        "phrase": "Can't quite put my finger on it",
+        "definition_zh": "感觉到有问题但说不出来",
+        "examples": [
           {
-            "en": "Can t quite put my finger on it",
-            "zh": "感觉到有问题但说不出来Thereissomethingoffaboutthenewprojectproposal,butIcan'tquiteputmyfingeronit. 这份新的项目提案有点不对劲，但我无法确切找出问题所在。"
+            "en": "There is something off about the new project proposal, but I can't quite put my finger on it",
+            "zh": "这份新的项目提案有点不对劲，但我无法确切找出问题所在。"
           },
           {
             "en": "I have a gut feeling that the team dynamics are changing but I can't quite put my finger on the root cause",
@@ -4088,10 +4168,16 @@
           {
             "en": "The team needs to find a way to increase productivity without sacrificing work life balance but it's not always possible to have your cake and eat it",
             "zh": "团队需要找到一种方法，在不牺牲工作与生活平衡的前提下提高生产力，但想要两全其美并不总是可能的。"
-          },
+          }
+        ]
+      },
+      {
+        "phrase": "Barking up the wrong tree",
+        "definition_zh": "错误的方法或方向；走错了方向",
+        "examples": [
           {
-            "en": "Barking up the wrong tree",
-            "zh": "错误的方法或方向I think you're barking up the wrong tree by focusing on that market segment. We need to targetayoungerdemographic.我觉得你集中精力在那个市场细分上是走错了方向。我们需要瞄准更年轻的人群。"
+            "en": "I think you're barking up the wrong tree by focusing on that market segment. We need to target a younger demographic",
+            "zh": "我觉得你集中精力在那个市场细分上是走错了方向。我们需要瞄准更年轻的人群。"
           },
           {
             "en": "He's been barking up the wrong tree for years trying to make a career as a musician but he's just not talented enough",
@@ -5029,11 +5115,7 @@
           },
           {
             "en": "The CEO's compensation was slashed in half after the company's poor performance",
-            "zh": "由于公司"
-          },
-          {
-            "en": "",
-            "zh": "表现不佳，CEO的薪酬被大幅削减了一半。"
+            "zh": "由于公司表现不佳，CEO的薪酬被大幅削减了一半。"
           }
         ]
       },
@@ -5633,7 +5715,7 @@
         ]
       },
       {
-        "phrase": "Pings b",
+        "phrase": "Ping",
         "definition_zh": "在聊天工具上叫某人",
         "examples": [
           {
