@@ -185,6 +185,17 @@ body{
 .scenario-row .s-en{color:var(--en)}
 .scenario-row .s-zh{color:var(--zh)}
 
+/* Scenario groups */
+.scenario-group{margin-bottom:2px}
+.scenario-group-title{
+  font-size:12px;font-weight:600;color:var(--accent-dim);
+  padding:6px 0 4px;letter-spacing:.3px;
+}
+.scenario-group-body{
+  padding-left:12px;border-left:2px solid var(--border);
+  margin-bottom:8px;
+}
+
 /* Loading */
 .loading{
   display:flex;align-items:center;justify-content:center;
@@ -325,10 +336,10 @@ body{
     html+=lesson.sections.map((sec,i)=>`
       <div class="scenario-block ${i===0?'open':''}">
         <div class="scenario-block-title">
-          <span class="arr">▶</span><span>${esc(sec.title)}</span><span class="n">${sec.items.length}</span>
+          <span class="arr">▶</span><span>${esc(sec.title)}</span><span class="n">${sec.items?sec.items.length:(sec.groups||[]).reduce((c,g)=>c+g.items.length,0)}</span>
         </div>
         <div class="scenario-block-body">
-          ${sec.items.map(item=>`
+          ${sec.groups ? renderGroups(sec.groups) : (sec.items||[]).map(item=>`
             <div class="scenario-row">
               <div class="s-en">${esc(item.en)}</div>
               <div class="s-zh">${esc(item.zh)}</div>
@@ -339,6 +350,22 @@ body{
     `).join('');
     html+='</div>';
     mainContent.innerHTML=html;
+
+    function renderGroups(groups){
+      return groups.map(g=>`
+        <div class="scenario-group">
+          <div class="scenario-group-title">${esc(g.title)}</div>
+          <div class="scenario-group-body">
+            ${g.items.map(item=>`
+              <div class="scenario-row">
+                <div class="s-en">${esc(item.en)}</div>
+                <div class="s-zh">${esc(item.zh)}</div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `).join('');
+    }
 
     mainContent.querySelectorAll('.scenario-block-title').forEach(h=>{
       h.addEventListener('click',()=>h.parentElement.classList.toggle('open'));
