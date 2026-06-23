@@ -26,7 +26,7 @@ body{
   background:var(--bg);
   color:var(--text);
   line-height:1.45;
-  font-size:14px;
+  font-size:16px;
   display:flex;
   min-height:100vh;
 }
@@ -133,11 +133,11 @@ body{
   margin-bottom:4px;
 }
 .phrase-term{
-  font-size:16px;font-weight:700;color:var(--accent);
+  font-size:18px;font-weight:700;color:var(--accent);
   letter-spacing:.3px;
 }
 .phrase-def{
-  font-size:12px;color:var(--zh);
+  font-size:14px;color:var(--zh);
   margin-left:6px;
 }
 .phrase-def::before{content:'— ';color:var(--text3)}
@@ -151,10 +151,10 @@ body{
 }
 .example-item:last-child{margin-bottom:0}
 .example-sentence{
-  font-size:14px;color:var(--en);line-height:1.45;
+  font-size:16px;color:var(--en);line-height:1.45;
 }
 .example-translation{
-  font-size:13px;color:var(--zh);line-height:1.4;margin-top:0;
+  font-size:15px;color:var(--zh);line-height:1.4;margin-top:0;
 }
 
 /* Audio play button */
@@ -205,7 +205,7 @@ body{
 /* Reading / Book mode */
 .reading-chapter{margin-bottom:20px}
 .reading-chapter-title{
-  font-size:16px;font-weight:700;color:var(--en);
+  font-size:18px;font-weight:700;color:var(--en);
   margin-bottom:14px;padding-bottom:6px;
   border-bottom:1px solid var(--border);
   letter-spacing:.5px;
@@ -213,19 +213,19 @@ body{
 }
 .reading-section{margin-bottom:18px}
 .reading-section-title{
-  font-size:15px;font-weight:700;color:var(--accent);
+  font-size:17px;font-weight:700;color:var(--accent);
   margin-bottom:10px;
 }
 .reading-group{margin-bottom:12px}
 .reading-group-title{
-  font-size:12px;font-weight:600;color:var(--accent-dim);
+  font-size:14px;font-weight:600;color:var(--accent-dim);
   margin-bottom:6px;letter-spacing:.4px;
   text-transform:uppercase;
   font-family:system-ui,sans-serif;
 }
 .reading-item{
   padding:2px 0;border-bottom:1px dotted var(--border);
-  font-size:14px;line-height:1.45;
+  font-size:16px;line-height:1.45;
 }
 .reading-item:last-child{border-bottom:none}
 .reading-en{color:var(--en);margin-bottom:1px}
@@ -234,7 +234,7 @@ body{
 /* Loading */
 .loading{
   display:flex;align-items:center;justify-content:center;
-  min-height:200px;color:var(--text3);font-size:14px;
+  min-height:200px;color:var(--text3);font-size:16px;
 }
 .spinner{
   width:18px;height:18px;border:2px solid var(--border);
@@ -242,7 +242,7 @@ body{
   animation:spin .6s linear infinite;margin-right:6px;
 }
 @keyframes spin{to{transform:rotate(360deg)}}
-.error{text-align:center;padding:24px;color:#e0556a;font-size:14px}
+.error{text-align:center;padding:24px;color:#e0556a;font-size:16px}
 
 /* Mobile */
 @media(max-width:700px){
